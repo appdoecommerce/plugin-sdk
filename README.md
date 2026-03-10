@@ -151,9 +151,11 @@ export interface Props {
 - `@TJS-type` - Tipo JSON Schema (integer, string, etc)
 - `@default` - Valor padrão
 
-## 📚 Publicação e Contribuição
+## 🤝 Contribuindo
 
-### Para Desenvolvedores do SDK
+Quer adicionar novos comandos ou melhorar o SDK? Veja o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Quick Start para Desenvolvedores
 
 ```bash
 # Clonar o repositório
@@ -168,10 +170,9 @@ npm run build
 
 # Testar localmente
 npm link
-
-# Publicar no npm
-npm publish --access public
 ```
+
+Para adicionar um novo comando, consulte o [guia de contribuição](CONTRIBUTING.md#-como-criar-um-novo-comando).
 
 ## 🐛 Issues e Suporte
 
@@ -180,54 +181,3 @@ Encontrou um bug ou tem uma sugestão? Abra uma issue em: [GitHub Issues](https:
 ## 📄 Licença
 
 MIT © AppDoEcommerce
-  .description("List all available plugins")
-  .action(listPlugins)
-```
-
-### Scripts NPM
-
-- `npm run build` - Compila TypeScript para JavaScript
-- `npm run dev` - Executa CLI em modo desenvolvimento (sem build)
-- `npm run schema` - Gera schemas JSON para todos os plugins
-- `npm link` - Instala CLI globalmente para testes
-
-## 📝 Template de Plugin
-
-Quando você executa `appecom make:plugin <nome>`, são criados:
-
-**index.ts:**
-```typescript
-import { Props } from "./props"
-
-export default function nome_do_pluginPlugin(props: Props) {
-  return {
-    ...props,
-  }
-}
-```
-
-**props.ts:**
-```typescript
-export interface Props {
-  /**
-   * Example property
-   * 
-   * @title Example Size
-   * @description The size of the component
-   * @minimum 0
-   * @TJS-type integer
-   */
-  size: number
-}
-```
-
-## 🔧 Tecnologias
-
-- **TypeScript** - Linguagem principal
-- **Commander.js** - Framework para CLI
-- **typescript-json-schema** - Geração de JSON Schemas
-- **ts-node** - Execução TypeScript direto
-
-## 📄 Licença
-
-MIT

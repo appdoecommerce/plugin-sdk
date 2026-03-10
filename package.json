@@ -10,8 +10,12 @@
   "files": [
     "dist",
     "README.md",
+    "CONTRIBUTING.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p src/tsconfig.json",
     "dev": "tsx src/cli.ts",
