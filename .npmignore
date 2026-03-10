@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.DS_Store
+
+# Test files
+.env
+plugins/
+
+# Development
+src/
+tsconfig.json
+*.ts
+!*.d.ts

@@ -1,0 +1,54 @@
+{
+  "name": "@appdoecommerce/plugin-sdk",
+  "version": "1.0.0",
+  "description": "AppDoEcommerce Plugin SDK - Developer toolkit for creating and managing plugins",
+  "type": "module",
+  "bin": {
+    "appecom": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p src/tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "prepublishOnly": "npm run build",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "appdoecommerce",
+    "plugin",
+    "sdk",
+    "cli",
+    "developer-kit",
+    "plugin-development",
+    "ecommerce",
+    "typescript"
+  ],
+  "author": "AppDoEcommerce",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/appdoecommerce/plugin-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/appdoecommerce/plugin-sdk/issues"
+  },
+  "homepage": "https://github.com/appdoecommerce/plugin-sdk#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "typescript-json-schema": "^0.67.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.9.3"
+  }
+}
