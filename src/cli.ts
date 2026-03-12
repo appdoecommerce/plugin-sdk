@@ -2,15 +2,24 @@
 
 import { Command } from "commander"
 import { makePlugin } from "./commands/make-plugin.js"
-import { generateSchemas } from "./commands/generate-schemas.js"
 import { prepareEnvironment } from "./commands/prepare.js"
+import { buildPlugin } from "./commands/build-plugin.js"
+import { watchPlugins } from "./commands/watch.js"
+import { previewPlugin } from "./commands/preview.js"
+import { generateScheme } from "./commands/scheme-generate.js"
+import { getSchemeFromBackend } from "./commands/scheme-get.js"
+import { uploadSchemeToBackend } from "./commands/scheme-upload.js"
+import { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
+const { version } = require("../package.json")
 
 const program = new Command()
 
 program
   .name("appecom")
   .description("AppDoEcommerce CLI - Plugin development toolkit")
-  .version("1.0.0")
+  .version(version)
 
 program
   .command("prepare")
@@ -20,11 +29,42 @@ program
 program
   .command("make:plugin <name>")
   .description("Create a new plugin with boilerplate files")
-  .action(makePlugin)
+  .option("-n, --name <displayName>", "Custom display name for the app")
+  .action((pluginName, options) => {
+    makePlugin(pluginName, options.name)
+  })
 
 program
-  .command("schema [plugin-name]")
-  .description("Generate JSON schemas for all plugins or a specific one")
-  .action(generateSchemas)
+  .command("build [plugin-name]")
+  .description("Build plugin(s) for production (server.js, client.js, style.css)")
+  .action(buildPlugin)
+
+program
+  .command("watch")
+  .description("Watch plugins/ for changes and auto-build")
+  .action(watchPlugins)
+
+program
+  .command("preview <plugin-name>")
+  .description("Generate and open a preview of the plugin in the browser")
+  .option("-w, --watch", "Watch for changes and auto-rebuild")
+  .action((pluginName, options) => {
+    previewPlugin(pluginName, { watch: options.watch })
+  })
+
+program
+  .command("scheme:generate <plugin-name>")
+  .description("Generate JSON schema from props.ts for a specific plugin")
+  .action(generateScheme)
+
+program
+  .command("scheme:get <plugin-name>")
+  .description("Download current schema from backend (with panel modifications)")
+  .action(getSchemeFromBackend)
+
+program
+  .command("scheme:upload <plugin-name>")
+  .description("Upload local schema to backend")
+  .action(uploadSchemeToBackend)
 
 program.parse()
