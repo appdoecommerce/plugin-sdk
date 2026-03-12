@@ -78,6 +78,30 @@ export async function createApp(payload: CreateAppPayload): Promise<CreateAppRes
 }
 
 /**
+ * Delete app from backend
+ */
+export async function deleteApp(serviceId: string): Promise<{ message: string }> {
+  const cwd = process.cwd()
+  const { storeId, token } = loadEnv(cwd)
+
+  const response = await fetch(`${APP_BASE}/delete/${serviceId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Store-ID": storeId,
+      "X-Integration-Token": token,
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
+/**
  * Get current scheme from backend
  */
 export async function getScheme(serviceId: string): Promise<{ scheme: string }> {

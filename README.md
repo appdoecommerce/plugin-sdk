@@ -9,10 +9,12 @@ O AppDoEcommerce Plugin SDK (`@appdoecommerce/plugin-sdk`) é uma CLI completa q
 - ⚡ Criar estrutura de plugins com templates otimizados (SSR + Hydration)
 - 🔨 Compilar plugins automaticamente (server.js, client.js, style.css)
 - 🔄 Gerar JSON Schemas automaticamente a partir de TypeScript
+- 🌐 Sincronizar schemas com backend (upload/download)
 - 🛡️ **Isolamento automático de CSS** - sem conflitos entre plugins
 - 👀 Watch mode com auto-rebuild e auto-scaffold
 - 📋 Registry automático de plugins para runtime
 - 📦 Trabalhar com tipagem completa e validação de props
+- 🔗 Integração completa com painel administrativo
 
 ## 📦 Instalação
 
@@ -38,7 +40,7 @@ appecom prepare
 # Edite .env e preencha APPECOM_STOREID e APPECOM_SECRET
 
 # 3. Criar seu primeiro plugin (registra automaticamente no backend)
-appecom make:plugin banner-hero --name "Banner Hero"
+appecom plugin:create banner-hero --name "Banner Hero"
 
 # 4. Editar os arquivos do plugin
 # - plugins/banner-hero/props.ts (schema)
@@ -46,17 +48,37 @@ appecom make:plugin banner-hero --name "Banner Hero"
 # - plugins/banner-hero/client.ts (hydration)
 # - plugins/banner-hero/style.scss (CSS)
 
-# 5. Preview do plugin no browser
+# 5. Atualizar schema após modificar props.ts
+appecom scheme:generate banner-hero
+appecom scheme:upload banner-hero
+
+# 6. Preview do plugin no browser
 appecom preview banner-hero
 
 # OU usar preview com watch (recomendado para desenvolvimento)
 appecom preview banner-hero --watch
 
-# 6. Build final (se necessário)
+# 7. Build final (se necessário)
 appecom build
 ```
 
 ## 📦 Comandos Disponíveis
+
+### Resumo Rápido
+
+| Comando | Descrição |
+|---------|-----------|
+| `appecom prepare` | Inicializa ambiente (cria .env e plugins/) |
+| `appecom plugin:create <name>` | Cria novo plugin e registra no backend |
+| `appecom plugin:delete <name>` | Deleta plugin do backend e arquivos locais |
+| `appecom build [plugin]` | Compila plugin(s) para produção |
+| `appecom watch` | Auto-rebuild ao detectar mudanças |
+| `appecom preview <plugin>` | Abre preview no browser |
+| `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
+| `appecom scheme:get <plugin>` | Baixa schema do backend |
+| `appecom scheme:upload <plugin>` | Envia schema para backend |
+
+---
 
 ### `appecom prepare`
 
@@ -75,18 +97,18 @@ appecom prepare
 - `APPECOM_STOREID` - ID da sua loja
 - `APPECOM_SECRET` - Chave secreta da API
 
-### `appecom make:plugin <nome>`
+### `appecom plugin:create <nome>`
 
 Cria um novo plugin com estrutura completa e registra no backend.
 
 **Exemplo básico:**
 ```bash
-appecom make:plugin youtube-embed
+appecom plugin:create youtube-embed
 ```
 
 **Com nome customizado:**
 ```bash
-appecom make:plugin youtube-embed --name "YouTube Video Embed"
+appecom plugin:create youtube-embed --name "YouTube Video Embed"
 ```
 
 **Opções:**
@@ -104,11 +126,38 @@ appecom make:plugin youtube-embed --name "YouTube Video Embed"
 - `server.ts` - Função SSR (render)
 - `client.ts` - Função hydration (interatividade)
 - `style.scss` - Estilos CSS
+- `manifest.json` - Metadados do plugin (com serviceId do backend)
 
 **⚠️ Requisitos:**
 - `.env` configurado com `APPECOM_STOREID` e `APPECOM_SECRET`
 - Backend rodando em `http://localhost:3333`
 - Plugin com mesmo `type` não pode existir para a mesma integração
+
+### `appecom plugin:delete <nome>`
+
+Deleta plugin do backend e remove arquivos locais.
+
+**Exemplo:**
+```bash
+appecom plugin:delete youtube-embed
+```
+
+**O que faz:**
+1. ✅ Lê `serviceId` do `manifest.json`
+2. ✅ Deleta app do backend via API
+3. ✅ Remove pasta `plugins/{nome}/`
+4. ✅ Remove pasta `dist/{nome}/`
+5. ❌ Se falhar: mantém arquivos locais (segurança)
+
+**⚠️ Atenção:**
+- **Ação irreversível** - deleta permanentemente do backend
+- Requer `serviceId` no manifest.json
+- Se falhar no backend, arquivos locais NÃO são deletados
+- Para deletar apenas arquivos locais, remova as pastas manualmente
+
+**⚠️ Requisitos:**
+- Plugin registrado no backend (com `serviceId` no manifest.json)
+- Credenciais válidas no `.env`
 
 ### `appecom build [plugin-name]`
 
@@ -177,21 +226,79 @@ appecom preview banner-hero --watch
 
 **Output**: `dist/{plugin-name}/preview.html`
 
-### `appecom schema [plugin-name]`
+### `appecom scheme:generate <plugin-name>`
 
-Gera automaticamente `schema.json` baseado nas interfaces TypeScript em `props.ts`.
+Gera `schema.json` a partir da interface TypeScript em `props.ts`.
 
-**Gerar schemas de todos os plugins:**
+**Exemplo:**
 ```bash
-appecom schema
+appecom scheme:generate banner-hero
 ```
 
-**Gerar schema de um plugin específico:**
+**O que faz:**
+1. ✅ Lê `plugins/{plugin}/props.ts`
+2. ✅ Gera `plugins/{plugin}/schema.json`
+3. ✅ Copia para `dist/{plugin}/schema.json` (se dist existir)
+
+**Quando usar:**
+- Após modificar `props.ts` e querer atualizar o schema
+- Antes de fazer upload para o backend
+
+### `appecom scheme:get <plugin-name>`
+
+Baixa o schema atual do backend (com modificações feitas no painel).
+
+**Exemplo:**
 ```bash
-appecom schema instagram-feed
+appecom scheme:get banner-hero
 ```
 
-> **Nota**: O comando `build` já gera schemas automaticamente. Use este comando apenas se precisar regenerar schemas sem fazer build completo.
+**O que faz:**
+1. ✅ Busca schema do backend via API (usando `serviceId` do manifest)
+2. ✅ Salva em `plugins/{plugin}/schema.json`
+3. ✅ Copia para `dist/{plugin}/schema.json` (se dist existir)
+
+**Quando usar:**
+- Após modificar props no painel administrativo
+- Para sincronizar schema do backend com o local
+
+**⚠️ Requisitos:**
+- Plugin registrado no backend (com `serviceId` no manifest.json)
+
+### `appecom scheme:upload <plugin-name>`
+
+Envia o schema local para o backend.
+
+**Exemplo:**
+```bash
+appecom scheme:upload banner-hero
+```
+
+**O que faz:**
+1. ✅ Lê `plugins/{plugin}/schema.json`
+2. ✅ Envia para backend via API (usando `serviceId` do manifest)
+3. ✅ Atualiza schema no painel administrativo
+
+**Quando usar:**
+- Após gerar novo schema com `scheme:generate`
+- Para sincronizar alterações locais com o backend
+
+**⚠️ Requisitos:**
+- Plugin registrado no backend (com `serviceId` no manifest.json)
+- `schema.json` existente no plugin
+
+**💡 Workflow completo:**
+```bash
+# 1. Editar props.ts
+# 2. Gerar novo schema
+appecom scheme:generate my-plugin
+
+# 3. Enviar para backend
+appecom scheme:upload my-plugin
+
+# 4. Ou, baixar schema modificado no painel
+appecom scheme:get my-plugin
+```
 
 ## 🛠️ Desenvolvimento
 
@@ -205,11 +312,13 @@ meu-projeto/
 │       ├── props.ts        # Interface TypeScript (schema)
 │       ├── server.ts       # SSR - Renderização no backend
 │       ├── client.ts       # Hydration - Interatividade no browser
-│       └── style.scss      # Estilos CSS (com isolamento automático)
+│       ├── style.scss      # Estilos CSS (com isolamento automático)
+│       ├── manifest.json   # Metadados (editável, com serviceId)
+│       └── schema.json     # JSON Schema (gerado automaticamente)
 ├── dist/
 │   ├── plugins-registry.json  # Registry de todos os plugins
 │   └── hero-banner/
-│       ├── manifest.json   # Metadados (torna plugin auto-contido)
+│       ├── manifest.json   # Metadados (copiado do source)
 │       ├── server.js       # Bundle ESM (Node.js)
 │       ├── client.js       # Bundle ESM (Browser)
 │       ├── style.css       # CSS isolado com prefix
@@ -368,11 +477,14 @@ O build gera automaticamente `dist/plugins-registry.json` que mapeia todos os pl
 
 ### 📦 Plugin Manifest (Individual)
 
-Além do registry global, cada plugin gera seu próprio `manifest.json`:
+Cada plugin possui seu próprio `manifest.json` em **dois locais**:
 
+**Source** (`plugins/{plugin}/manifest.json`):
 ```json
 {
-  "name": "hero-banner",
+  "serviceId": "123",
+  "name": "Hero Banner",
+  "type": "hero-banner",
   "version": "1.0.0",
   "server": "./server.js",
   "client": "./client.js",
@@ -381,13 +493,18 @@ Além do registry global, cada plugin gera seu próprio `manifest.json`:
 }
 ```
 
+**Build** (`dist/{plugin}/manifest.json`):
+- Copiado automaticamente do source durante o build
+- Preserva `serviceId` e outras customizações
+
 **Diferença do Registry**:
 - **Registry**: Paths absolutos (`/dist/...`) - para listar todos os plugins
 - **Manifest**: Paths relativos (`./...`) - para carregar plugin isoladamente
 
 **Benefícios**:
 - ✅ Plugin auto-contido (copie apenas a pasta `dist/{plugin}`)
-- ✅ Portável (funciona em qualquer lugar)
+- ✅ Editável no source (`plugins/{plugin}/manifest.json`)
+- ✅ Sincronizado com backend (via `serviceId`)
 - ✅ Versionado (cada plugin tem sua versão)
 - ✅ Lazy loading (carregue sob demanda)
 

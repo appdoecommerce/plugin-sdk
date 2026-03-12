@@ -8,12 +8,23 @@ Guia para desenvolvedores que querem contribuir com o SDK ou adicionar novos com
 plugin-sdk/
 ├── src/
 │   ├── cli.ts                      # Entry point - registra comandos
+│   ├── api.ts                      # Cliente API para backend
 │   ├── commands/                   # Diretório de comandos
-│   │   ├── prepare.ts             # Comando: appecom prepare
-│   │   ├── make-plugin.ts         # Comando: appecom make:plugin
-│   │   └── generate-schemas.ts    # Comando: appecom schema
-│   └── tsconfig.json              # Config TypeScript do CLI
-├── dist/                          # Código compilado (gerado pelo build)
+│   │   ├── prepare.ts              # Comando: appecom prepare
+│   │   ├── make-plugin.ts          # Comando: appecom plugin:create
+│   │   ├── plugin-delete.ts        # Comando: appecom plugin:delete
+│   │   ├── build-plugin.ts         # Comando: appecom build
+│   │   ├── watch.ts                # Comando: appecom watch
+│   │   ├── preview.ts              # Comando: appecom preview
+│   │   ├── scheme-generate.ts      # Comando: appecom scheme:generate
+│   │   ├── scheme-get.ts           # Comando: appecom scheme:get
+│   │   └── scheme-upload.ts        # Comando: appecom scheme:upload
+│   ├── utils/                      # Utilitários compartilhados
+│   │   ├── css-isolation.ts        # Plugin PostCSS para isolamento
+│   │   ├── generate-manifest.ts    # Geração de manifest.json
+│   │   └── generate-sample-props.ts # Geração de props exemplo
+│   └── tsconfig.json               # Config TypeScript do CLI
+├── dist/                           # Código compilado (gerado pelo build)
 ├── package.json
 └── README.md
 ```
@@ -91,8 +102,11 @@ Edite `src/cli.ts` e adicione o novo comando:
 
 import { Command } from "commander"
 import { makePlugin } from "./commands/make-plugin.js"
-import { generateSchemas } from "./commands/generate-schemas.js"
 import { prepareEnvironment } from "./commands/prepare.js"
+import { buildPlugin } from "./commands/build-plugin.js"
+import { generateScheme } from "./commands/scheme-generate.js"
+import { getSchemeFromBackend } from "./commands/scheme-get.js"
+import { uploadSchemeToBackend } from "./commands/scheme-upload.js"
 import { listPlugins } from "./commands/list-plugins.js"  // ← Importar
 
 const program = new Command()
@@ -108,14 +122,27 @@ program
   .action(prepareEnvironment)
 
 program
-  .command("make:plugin <name>")
+  .command("plugin:create <name>")
   .description("Create a new plugin with boilerplate files")
-  .action(makePlugin)
+  .option("-n, --name <displayName>", "Custom display name for the app")
+  .action((pluginName, options) => {
+    makePlugin(pluginName, options.name)
+  })
 
 program
-  .command("schema [plugin-name]")
-  .description("Generate JSON schemas for all plugins or a specific one")
-  .action(generateSchemas)
+  .command("scheme:generate <plugin-name>")
+  .description("Generate JSON schema from props.ts for a specific plugin")
+  .action(generateScheme)
+
+program
+  .command("scheme:get <plugin-name>")
+  .description("Download current schema from backend (with panel modifications)")
+  .action(getSchemeFromBackend)
+
+program
+  .command("scheme:upload <plugin-name>")
+  .description("Upload local schema to backend")
+  .action(uploadSchemeToBackend)
 
 // ← Adicionar novo comando aqui
 program
@@ -141,7 +168,7 @@ appecom list
 ### Nomenclatura de Comandos
 
 - **Simples:** `list`, `init`, `build`
-- **Com namespace:** `make:plugin`, `generate:schema`
+- **Com namespace:** `plugin:create`, `plugin:delete`, `scheme:generate`
 - **Com parâmetros:** `<obrigatório>`, `[opcional]`
 
 ### Estrutura de Função
@@ -249,7 +276,7 @@ export async function validatePlugin(pluginName: string): Promise<void> {
 
   // Verificar schema
   if (!fs.existsSync(path.join(pluginDir, "schema.json"))) {
-    console.log("⚠️  Missing schema.json - run 'appecom schema'")
+    console.log("⚠️  Missing schema.json - run 'appecom scheme:generate <plugin-name>'")
     issues++
   }
 
@@ -291,7 +318,7 @@ export async function watchSchemas(): Promise<void> {
 ```bash
 # Executar diretamente sem build
 npm run dev -- prepare
-npm run dev -- make:plugin test
+npm run dev -- plugin:create test
 ```
 
 ### Debug no VS Code
@@ -308,7 +335,7 @@ Adicione em `.vscode/launch.json`:
       "name": "Debug CLI",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/cli.ts",
-      "args": ["make:plugin", "test"],
+      "args": ["plugin:create", "test"],
       "runtimeArgs": ["--loader", "tsx"],
       "console": "integratedTerminal"
     }

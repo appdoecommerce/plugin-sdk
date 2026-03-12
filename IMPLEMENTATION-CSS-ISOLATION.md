@@ -121,7 +121,7 @@ export async function processCssIsolation(css: string, pluginName: string)
 ### Teste 1: Build com prefix automático ✅
 
 ```bash
-$ appecom make:plugin banner-hero
+$ appecom plugin:create banner-hero
 $ appecom build banner-hero
 ```
 

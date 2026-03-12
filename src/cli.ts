@@ -2,6 +2,7 @@
 
 import { Command } from "commander"
 import { makePlugin } from "./commands/make-plugin.js"
+import { deletePlugin } from "./commands/plugin-delete.js"
 import { prepareEnvironment } from "./commands/prepare.js"
 import { buildPlugin } from "./commands/build-plugin.js"
 import { watchPlugins } from "./commands/watch.js"
@@ -27,7 +28,7 @@ program
   .action(prepareEnvironment)
 
 program
-  .command("make:plugin <name>")
+  .command("plugin:create <name>")
   .description("Create a new plugin with boilerplate files")
   .option("-n, --name <displayName>", "Custom display name for the app")
   .action((pluginName, options) => {
@@ -35,23 +36,10 @@ program
   })
 
 program
-  .command("build [plugin-name]")
-  .description("Build plugin(s) for production (server.js, client.js, style.css)")
-  .action(buildPlugin)
-
-program
-  .command("watch")
-  .description("Watch plugins/ for changes and auto-build")
-  .action(watchPlugins)
-
-program
-  .command("preview <plugin-name>")
-  .description("Generate and open a preview of the plugin in the browser")
-  .option("-w, --watch", "Watch for changes and auto-rebuild")
-  .action((pluginName, options) => {
-    previewPlugin(pluginName, { watch: options.watch })
-  })
-
+  .command("plugin:delete <name>")
+  .description("Delete plugin from backend and local filesystem")
+  .action(deletePlugin)
+  
 program
   .command("scheme:generate <plugin-name>")
   .description("Generate JSON schema from props.ts for a specific plugin")
@@ -66,5 +54,23 @@ program
   .command("scheme:upload <plugin-name>")
   .description("Upload local schema to backend")
   .action(uploadSchemeToBackend)
+  
+program
+  .command("watch")
+  .description("Watch plugins/ for changes and auto-build")
+  .action(watchPlugins)
+  
+program
+  .command("preview <plugin-name>")
+  .description("Generate and open a preview of the plugin in the browser")
+  .option("-w, --watch", "Watch for changes and auto-rebuild")
+  .action((pluginName, options) => {
+    previewPlugin(pluginName, { watch: options.watch })
+  })
+
+program
+  .command("build [plugin-name]")
+  .description("Build plugin(s) for production (server.js, client.js, style.css)")
+  .action(buildPlugin)
 
 program.parse()

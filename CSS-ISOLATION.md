@@ -87,7 +87,7 @@ export async function render(props: Props): Promise<string> {
 .appecom-banner-hero .banner-hero__button { }      /* ✅ Combina! */
 ```
 
-> **Nota**: Os templates do `appecom make:plugin` já geram essa estrutura automaticamente.
+> **Nota**: Os templates do `appecom plugin:create` já geram essa estrutura automaticamente.
 
 ## 📋 Regras Ignoradas
 
@@ -183,7 +183,7 @@ CSS Modules geraria hashes únicos, mas requer:
 
 ### 1. Criar plugin
 ```bash
-appecom make:plugin test-isolation
+appecom plugin:create test-isolation
 ```
 
 ### 2. Editar `plugins/test-isolation/style.scss`
