@@ -9,7 +9,7 @@ O AppDoEcommerce Plugin SDK (`@appdoecommerce/plugin-sdk`) é uma CLI completa q
 - ⚡ Criar estrutura de plugins com templates otimizados (SSR + Hydration)
 - 🔨 Compilar plugins automaticamente (server.js, client.js, style.css)
 - 🔄 Gerar JSON Schemas automaticamente a partir de TypeScript
-- 🌐 Sincronizar schemas com backend (upload/download)
+- 🌐 Sincronizar schemas com sistema (upload/download)
 - 🛡️ **Isolamento automático de CSS** - sem conflitos entre plugins
 - 👀 Watch mode com auto-rebuild e auto-scaffold
 - 📋 Registry automático de plugins para runtime
@@ -39,7 +39,7 @@ appecom prepare
 # 2. Configurar credenciais no .env
 # Edite .env e preencha APPECOM_STOREID e APPECOM_SECRET
 
-# 3. Criar seu primeiro plugin (registra automaticamente no backend)
+# 3. Criar seu primeiro plugin (registra automaticamente no sistema)
 appecom plugin:create banner-hero --name "Banner Hero"
 
 # 4. Editar os arquivos do plugin
@@ -69,14 +69,14 @@ appecom build
 | Comando | Descrição |
 |---------|-----------|
 | `appecom prepare` | Inicializa ambiente (cria .env e plugins/) |
-| `appecom plugin:create <name>` | Cria novo plugin e registra no backend |
-| `appecom plugin:delete <name>` | Deleta plugin do backend e arquivos locais |
+| `appecom plugin:create <name>` | Cria novo plugin e registra no sistema |
+| `appecom plugin:delete <name>` | Deleta plugin do sistema e arquivos locais |
 | `appecom build [plugin]` | Compila plugin(s) para produção |
 | `appecom watch` | Auto-rebuild ao detectar mudanças |
 | `appecom preview <plugin>` | Abre preview no browser |
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
-| `appecom scheme:get <plugin>` | Baixa schema do backend |
-| `appecom scheme:upload <plugin>` | Envia schema para backend |
+| `appecom scheme:get <plugin>` | Baixa schema do sistema |
+| `appecom scheme:upload <plugin>` | Envia schema para sistema |
 | `appecom deploy <plugin>` | Deploy para plugin-server com versionamento |
 
 ---
@@ -100,7 +100,7 @@ appecom prepare
 
 ### `appecom plugin:create <nome>`
 
-Cria um novo plugin com estrutura completa e registra no backend.
+Cria um novo plugin com estrutura completa e registra no sistema.
 
 **Exemplo básico:**
 ```bash
@@ -118,7 +118,7 @@ appecom plugin:create youtube-embed --name "YouTube Video Embed"
 **O que faz:**
 1. ✅ Cria arquivos do plugin localmente
 2. ✅ Builda automaticamente (gera schema.json)
-3. ✅ Registra o app no backend via API
+3. ✅ Registra o app no sistema via API
 4. ✅ Salva serviceId no manifest.json
 5. ❌ Se falhar: rollback completo (deleta pastas criadas)
 
@@ -127,16 +127,15 @@ appecom plugin:create youtube-embed --name "YouTube Video Embed"
 - `server.ts` - Função SSR (render)
 - `client.ts` - Função hydration (interatividade)
 - `style.scss` - Estilos CSS
-- `manifest.json` - Metadados do plugin (com serviceId do backend)
+- `manifest.json` - Metadados do plugin (com serviceId do sistema)
 
 **⚠️ Requisitos:**
 - `.env` configurado com `APPECOM_STOREID` e `APPECOM_SECRET`
-- Backend rodando em `http://localhost:3333`
 - Plugin com mesmo `type` não pode existir para a mesma integração
 
 ### `appecom plugin:delete <nome>`
 
-Deleta plugin do backend e remove arquivos locais.
+Deleta plugin do sistema e remove arquivos locais.
 
 **Exemplo:**
 ```bash
@@ -145,19 +144,19 @@ appecom plugin:delete youtube-embed
 
 **O que faz:**
 1. ✅ Lê `serviceId` do `manifest.json`
-2. ✅ Deleta app do backend via API
+2. ✅ Deleta app do sistema via API
 3. ✅ Remove pasta `plugins/{nome}/`
 4. ✅ Remove pasta `dist/{nome}/`
 5. ❌ Se falhar: mantém arquivos locais (segurança)
 
 **⚠️ Atenção:**
-- **Ação irreversível** - deleta permanentemente do backend
+- **Ação irreversível** - deleta permanentemente do sistema
 - Requer `serviceId` no manifest.json
-- Se falhar no backend, arquivos locais NÃO são deletados
+- Se falhar no sistema, arquivos locais NÃO são deletados
 - Para deletar apenas arquivos locais, remova as pastas manualmente
 
 **⚠️ Requisitos:**
-- Plugin registrado no backend (com `serviceId` no manifest.json)
+- Plugin registrado no sistema (com `serviceId` no manifest.json)
 - Credenciais válidas no `.env`
 
 ### `appecom build [plugin-name]`
@@ -175,7 +174,7 @@ appecom build banner-hero
 ```
 
 **Output gerado em `dist/{plugin-name}/`:**
-- `server.js` - Bundle ESM (para Node.js backend)
+- `server.js` - Bundle ESM (para Node.js sistema)
 - `client.js` - Bundle ESM (para browser)
 - `style.css` - CSS compilado **com isolamento automático** (prefix `.appecom-{plugin}`)
 - `schema.json` - JSON Schema auto-gerado
@@ -243,11 +242,11 @@ appecom scheme:generate banner-hero
 
 **Quando usar:**
 - Após modificar `props.ts` e querer atualizar o schema
-- Antes de fazer upload para o backend
+- Antes de fazer upload para o sistema
 
 ### `appecom scheme:get <plugin-name>`
 
-Baixa o schema atual do backend (com modificações feitas no painel).
+Baixa o schema atual do sistema (com modificações feitas no painel).
 
 **Exemplo:**
 ```bash
@@ -255,20 +254,20 @@ appecom scheme:get banner-hero
 ```
 
 **O que faz:**
-1. ✅ Busca schema do backend via API (usando `serviceId` do manifest)
+1. ✅ Busca schema do sistema via API (usando `serviceId` do manifest)
 2. ✅ Salva em `plugins/{plugin}/schema.json`
 3. ✅ Copia para `dist/{plugin}/schema.json` (se dist existir)
 
 **Quando usar:**
 - Após modificar props no painel administrativo
-- Para sincronizar schema do backend com o local
+- Para sincronizar schema do sistema com o local
 
 **⚠️ Requisitos:**
-- Plugin registrado no backend (com `serviceId` no manifest.json)
+- Plugin registrado no sistema (com `serviceId` no manifest.json)
 
 ### `appecom scheme:upload <plugin-name>`
 
-Envia o schema local para o backend.
+Envia o schema local para o sistema.
 
 **Exemplo:**
 ```bash
@@ -277,15 +276,15 @@ appecom scheme:upload banner-hero
 
 **O que faz:**
 1. ✅ Lê `plugins/{plugin}/schema.json`
-2. ✅ Envia para backend via API (usando `serviceId` do manifest)
+2. ✅ Envia para sistema via API (usando `serviceId` do manifest)
 3. ✅ Atualiza schema no painel administrativo
 
 **Quando usar:**
 - Após gerar novo schema com `scheme:generate`
-- Para sincronizar alterações locais com o backend
+- Para sincronizar alterações locais com o sistema
 
 **⚠️ Requisitos:**
-- Plugin registrado no backend (com `serviceId` no manifest.json)
+- Plugin registrado no sistema (com `serviceId` no manifest.json)
 - `schema.json` existente no plugin
 
 **💡 Workflow completo:**
@@ -294,7 +293,7 @@ appecom scheme:upload banner-hero
 # 2. Gerar novo schema
 appecom scheme:generate my-plugin
 
-# 3. Enviar para backend
+# 3. Enviar para sistema
 appecom scheme:upload my-plugin
 
 # 4. Ou, baixar schema modificado no painel
@@ -396,7 +395,7 @@ meu-projeto/
 ├── plugins/
 │   └── hero-banner/
 │       ├── props.ts        # Interface TypeScript (schema)
-│       ├── server.ts       # SSR - Renderização no backend
+│       ├── server.ts       # SSR - Renderização no sistema
 │       ├── client.ts       # Hydration - Interatividade no browser
 │       ├── style.scss      # Estilos CSS (com isolamento automático)
 │       ├── manifest.json   # Metadados (editável, com serviceId)
@@ -420,7 +419,7 @@ Os plugins usam uma arquitetura híbrida para melhor performance:
 
 #### 1️⃣ Server-side Rendering (server.ts)
 
-Roda no **backend (Node.js)** e retorna HTML string:
+Roda no **sistema (Node.js)** e retorna HTML string:
 
 ```typescript
 import { Props } from "./props"
@@ -523,7 +522,7 @@ Todos os estilos recebem **prefix automático** para evitar conflitos:
 
 ✅ **Sem conflitos!** Cada plugin tem seu namespace isolado.
 
-📖 **Leia mais**: [CSS-ISOLATION.md](CSS-ISOLATION.md) | [EXAMPLE-CSS-ISOLATION.md](EXAMPLE-CSS-ISOLATION.md)
+📖 **Leia mais**: [EXAMPLE-CSS-ISOLATION.md](EXAMPLE-CSS-ISOLATION.md)
 
 ### Exemplo de props.ts
 
@@ -616,7 +615,7 @@ Cada plugin possui seu próprio `manifest.json` em **dois locais**:
 **Benefícios**:
 - ✅ Plugin auto-contido (copie apenas a pasta `dist/{plugin}`)
 - ✅ Editável no source (`plugins/{plugin}/manifest.json`)
-- ✅ Sincronizado com backend (via `serviceId`)
+- ✅ Sincronizado com sistema (via `serviceId`)
 - ✅ Versionado (cada plugin tem sua versão)
 - ✅ Lazy loading (carregue sob demanda)
 

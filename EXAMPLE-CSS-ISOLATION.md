@@ -197,4 +197,4 @@ dist/test-isolation/style.css: 0.8 KB (comprimido + prefixado)
 1. **Use BEM** para nomear suas classes
 2. **Sempre adicione wrapper** `.appecom-{plugin-name}` no HTML
 3. **Confie no build** - o prefix é automático
-4. **Consulte [CSS-ISOLATION.md](CSS-ISOLATION.md)** para alternativas (Shadow DOM)
+4. **Consulte [README.md](README.md)** para mais detalhes sobre desenvolvimento de plugins

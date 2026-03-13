@@ -14,3 +14,4 @@ tsconfig.json
 .todo
 plugins
 plugin-server
+MANIFEST-EXAMPLES.md

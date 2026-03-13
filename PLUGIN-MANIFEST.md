@@ -16,12 +16,14 @@ O manifest permite que um plugin seja:
 
 ```json
 {
-  "name": "instagram-feed",
+  "name": "Instagram Feed",
+  "type": "instagram-feed",
   "version": "1.0.0",
   "server": "./server.js",
   "client": "./client.js",
   "style": "./style.css",
-  "schema": "./schema.json"
+  "schema": "./schema.json",
+  "serviceId": "123"
 }
 ```
 
@@ -29,12 +31,14 @@ O manifest permite que um plugin seja:
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `name` | `string` | Nome do plugin (igual ao diretório) |
-| `version` | `string` | Versão do workspace (`package.json`) ou `1.0.0` |
-| `server` | `string` | Caminho relativo para o bundle server-side |
-| `client` | `string` | Caminho relativo para o bundle client-side |
+| `name` | `string` | Nome de exibição do plugin |
+| `type` | `string` | Identificador único do plugin (kebab-case) |
+| `version` | `string` | Versão do plugin (semver) |
+| `server` | `string` | Caminho relativo para o bundle server-side (ESM) |
+| `client` | `string` | Caminho relativo para o bundle client-side (ESM) |
 | `style` | `string` | Caminho relativo para o CSS compilado |
 | `schema` | `string` | Caminho relativo para o JSON Schema |
+| `serviceId` | `string` | ID do serviço no sistema (gerado automaticamente) |
 
 **Importante**: Todos os caminhos são **relativos** (começam com `./`), não absolutos.
 
@@ -60,12 +64,14 @@ O manifest permite que um plugin seja:
 ### Individual Manifest (`dist/instagram-feed/manifest.json`)
 ```json
 {
-  "name": "instagram-feed",
+  "name": "Instagram Feed",
+  "type": "instagram-feed",
   "version": "1.0.0",
   "server": "./server.js",                         ← Paths relativos
   "client": "./client.js",
   "style": "./style.css",
-  "schema": "./schema.json"
+  "schema": "./schema.json",
+  "serviceId": "123"
 }
 ```
 **Uso**: Carregar um plugin específico isoladamente.
@@ -163,7 +169,7 @@ if (validatePlugin('dist/instagram-feed')) {
 ```
 dist/instagram-feed/
 ├── manifest.json      ← Metadados do plugin (auto-contido)
-├── server.js          ← Bundle SSR (CommonJS)
+├── server.js          ← Bundle SSR (ESM)
 ├── client.js          ← Bundle hydration (ESM)
 ├── style.css          ← CSS isolado com prefix
 ├── schema.json        ← JSON Schema das props
@@ -180,52 +186,46 @@ dist/instagram-feed/
 
 ## 🔧 Configuração de Versão
 
-### Automático (recomendado)
-O manifest usa a versão do `package.json` do workspace:
+Cada plugin tem sua própria versão independente:
 
 ```json
-// package.json
+// plugins/instagram-feed/manifest.json
 {
-  "name": "@appdoecommerce/plugin-sdk",
-  "version": "1.2.3"  ← Usada nos manifests
+  "name": "Instagram Feed",
+  "type": "instagram-feed",
+  "version": "2.5.0",  ← Versão específica do plugin
+  "serviceId": "123"
 }
 ```
 
-**Todos os plugins** herdam essa versão: `1.2.3`
-
----
-
-### Manual (futuro)
-No futuro, cada plugin pode ter sua própria versão:
-
-```json
-// plugins/instagram-feed/package.json
-{
-  "version": "2.5.0"  ← Versão específica do plugin
-}
-```
+**Quando atualizar a versão:**
+- Após mudanças no código (server.ts, client.ts, style.scss)
+- Antes de fazer deploy (`appecom deploy <plugin>`)
+- Siga [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH
 
 ---
 
 ## ✅ Quando o Manifest é Gerado?
 
-O `manifest.json` é gerado **automaticamente** durante o build:
+O `manifest.json` é criado e gerenciado automaticamente:
 
+**Durante criação:**
 ```bash
-# Build único
-appecom build instagram-feed
-# → Gera dist/instagram-feed/manifest.json
-
-# Build geral
-appecom build
-# → Gera manifest.json para TODOS os plugins
-
-# Watch mode
-appecom watch
-# → Gera/atualiza manifest.json em cada rebuild
+appecom plugin:create instagram-feed --name "Instagram Feed"
 ```
+- Cria `plugins/instagram-feed/manifest.json`
+- Registra plugin no sistema e obtém `serviceId`
+- Atualiza manifest com `serviceId`
 
-**Não precisa fazer nada!** É automático.
+**Durante build:**
+```bash
+appecom build instagram-feed
+```
+- Copia manifest para `dist/instagram-feed/manifest.json`
+- Preserva `serviceId` e `version`
+- Plugin fica auto-contido e pronto para distribuir
+
+**⚠️ Editável:** Você pode editar `plugins/{plugin}/manifest.json` manualmente (nome, versão, etc). As mudanças serão copiadas para dist/ no próximo build.
 
 ---
 
@@ -245,14 +245,8 @@ appecom watch
 
 ---
 
-## 💡 Exemplos Práticos
+## � Leia Mais
 
-Quer ver como usar manifests no runtime? Confira exemplos completos em:
-
-📖 **[MANIFEST-EXAMPLES.md](MANIFEST-EXAMPLES.md)**
-
-- Carregar plugin isoladamente (Node.js)
-- Runtime CDN (Browser)
-- Upload para marketplace
-- Validação de plugins
-- Sistema de atualizações
+- **[README.md](README.md)** - Guia completo do SDK
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Como contribuir
+- **[CHANGELOG.md](CHANGELOG.md)** - Histórico de versões

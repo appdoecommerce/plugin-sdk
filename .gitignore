@@ -6,3 +6,4 @@ dist/
 .todo
 plugins
 plugin-server
+MANIFEST-EXAMPLES.md
