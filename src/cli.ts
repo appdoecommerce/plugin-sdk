@@ -10,6 +10,7 @@ import { previewPlugin } from "./commands/preview.js"
 import { generateScheme } from "./commands/scheme-generate.js"
 import { getSchemeFromBackend } from "./commands/scheme-get.js"
 import { uploadSchemeToBackend } from "./commands/scheme-upload.js"
+import { deployPlugin } from "./commands/deploy-plugin.js"
 import { createRequire } from "module"
 
 const require = createRequire(import.meta.url)
@@ -72,5 +73,10 @@ program
   .command("build [plugin-name]")
   .description("Build plugin(s) for production (server.js, client.js, style.css)")
   .action(buildPlugin)
+
+program
+  .command("deploy <plugin-name>")
+  .description("Deploy plugin to plugin server with versioning")
+  .action(deployPlugin)
 
 program.parse()

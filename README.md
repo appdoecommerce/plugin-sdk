@@ -77,6 +77,7 @@ appecom build
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
 | `appecom scheme:get <plugin>` | Baixa schema do backend |
 | `appecom scheme:upload <plugin>` | Envia schema para backend |
+| `appecom deploy <plugin>` | Deploy para plugin-server com versionamento |
 
 ---
 
@@ -300,7 +301,92 @@ appecom scheme:upload my-plugin
 appecom scheme:get my-plugin
 ```
 
-## 🛠️ Desenvolvimento
+---
+
+### `appecom deploy <plugin-name>`
+
+**🆕 Deploy de plugin para servidor com versionamento**
+
+Faz deploy do plugin para o plugin-server com controle automático de versão.
+
+**Exemplo:**
+```bash
+appecom deploy reviews
+```
+
+**O que faz:**
+1. ✅ Lê `version` do `manifest.json`
+2. ✅ Cria pacote zip do plugin (dist/)
+3. ✅ Faz upload para plugin-server
+4. ✅ Servidor extrai para `plugins/<name>/<version>/`
+5. ✅ Atualiza symlink `latest` → nova versão
+6. ✅ Registra deploy em histórico
+7. ✅ Remove arquivo zip local
+
+**Exemplo de saída:**
+```
+🚀 Deploying plugin: reviews
+
+📋 Step 1/5: Reading manifest...
+   ✅ Plugin: Reviews
+   ✅ Version: 1.0.0
+   ✅ Type: reviews
+
+📦 Step 2/5: Creating deployment package...
+   ✅ Package created: 0.15 MB
+
+☁️  Step 3/5: Uploading to server...
+   📡 Server: http://localhost:4000
+   ✅ Upload completed successfully
+
+✓ Step 4/5: Verifying deployment...
+   ✅ Available versions: 1.0.0
+   ✅ Latest version: 1.0.0
+
+🧹 Step 5/5: Cleaning up...
+   ✅ Temporary files removed
+
+✅ Deployment successful!
+
+📦 Deployed: reviews@1.0.0
+```
+
+**Versionamento:**
+```
+plugins/
+├── reviews/
+│   ├── 1.0.0/           # Deploy 1
+│   ├── 1.0.1/           # Deploy 2
+│   ├── 1.1.0/           # Deploy 3
+│   ├── latest/          # Symlink → 1.1.0
+│   └── versions.json    # Histórico
+```
+
+**⚠️ Requisitos:**
+- Plugin já buildado (`appecom build <plugin-name>`)
+- Plugin-server rodando
+- `PLUGIN_SERVER_URL` configurado no `.env`
+
+**⚠️ Notas:**
+- Não pode fazer deploy da mesma versão duas vezes
+- Atualize `version` no `manifest.json` para novo deploy
+- Versões antigas são mantidas para rollback
+
+**Workflow recomendado:**
+```bash
+# 1. Editar plugin
+# 2. Atualizar version no manifest.json
+# 3. Build
+appecom build reviews
+
+# 4. Deploy
+appecom deploy reviews
+
+# 5. Verificar versões no servidor
+curl http://localhost:4000/api/plugins/reviews/versions
+```
+
+---
 
 ### Estrutura de um Plugin
 

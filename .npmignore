@@ -13,3 +13,4 @@ tsconfig.json
 !*.d.ts
 .todo
 plugins
+plugin-server

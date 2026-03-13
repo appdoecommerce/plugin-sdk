@@ -148,16 +148,12 @@ async function buildSinglePlugin(
     builtFiles.push("props.ts")
   }
 
-  // Generate and copy schema.json
-  const schemaGenerated = await generateSchemaForPlugin(pluginName, pluginsDir)
-  if (schemaGenerated) {
-    const schemaSourcePath = path.join(pluginDir, "schema.json")
+  // Copy schema.json (don't regenerate - preserve dashboard changes)
+  const schemaSourcePath = path.join(pluginDir, "schema.json")
+  if (fs.existsSync(schemaSourcePath)) {
     const schemaDestPath = path.join(distDir, "schema.json")
-    
-    if (fs.existsSync(schemaSourcePath)) {
-      fs.copyFileSync(schemaSourcePath, schemaDestPath)
-      builtFiles.push("schema.json")
-    }
+    fs.copyFileSync(schemaSourcePath, schemaDestPath)
+    builtFiles.push("schema.json")
   }
 
   // Generate manifest.json (makes plugin self-contained)

@@ -1,6 +1,7 @@
 import fs from "fs"
 import path from "path"
 import { pathToFileURL } from "url"
+import http from "http"
 import open from "open"
 import { buildPlugin } from "./build-plugin.js"
 import { generateSampleProps } from "../utils/generate-sample-props.js"
@@ -27,13 +28,28 @@ export async function previewPlugin(
   await buildPlugin(pluginName)
 
   // Generate and serve preview
-  await generatePreview(pluginName, distDir, cwd)
+  const server = await generatePreview(pluginName, distDir, cwd)
 
   if (options.watch) {
     console.log(`\n👀 Watching for changes... (Press Ctrl+C to stop)`)
-    watchAndRebuild(pluginName, pluginDir, distDir, cwd)
+    watchAndRebuild(pluginName, pluginDir, distDir, cwd, server)
+  }
+  
+  // Keep process running if server started
+  if (server) {
+    // Graceful shutdown
+    process.on("SIGINT", () => {
+      console.log(`\n\n👋 Stopping preview server...`)
+      server.close()
+      process.exit(0)
+    })
+    
+    // Keep process alive
+    await new Promise(() => {})
   } else {
-    console.log(`\n💡 Tip: Use --watch to auto-rebuild on changes`)
+    if (!options.watch) {
+      console.log(`\n💡 Tip: Use --watch to auto-rebuild on changes`)
+    }
   }
 }
 
@@ -42,7 +58,7 @@ async function generatePreview(
   distDir: string,
   cwd: string,
   openBrowser: boolean = true
-): Promise<void> {
+): Promise<http.Server | null> {
   // Read schema and generate sample props
   const schemaPath = path.join(distDir, "schema.json")
   let props = {}
@@ -121,18 +137,81 @@ async function generatePreview(
 
   console.log(`✅ Preview generated: dist/${pluginName}/preview.html`)
 
-  // Open in browser only if requested (first time)
+  // Start HTTP server and open in browser
   if (openBrowser) {
+    console.log(`🌐 Starting preview server...`)
+    const server = startPreviewServer(distDir, pluginName)
+    const port = 3030
+    const url = `http://localhost:${port}/preview.html`
+    
+    console.log(`📡 Server running at ${url}`)
     console.log(`🌐 Opening in browser...`)
-    await open(previewPath)
+    await open(url)
+    
+    console.log(`\n💡 Press Ctrl+C to stop the server`)
+    
+    // Keep server running
+    return server
   }
+  
+  return null
+}
+
+function startPreviewServer(distDir: string, pluginName: string): http.Server {
+  const PORT = 3030
+  
+  const server = http.createServer((req, res) => {
+    // Get requested file path
+    let filePath = req.url === '/' ? '/preview.html' : req.url || '/preview.html'
+    filePath = path.join(distDir, filePath)
+    
+    // Determine content type
+    const extname = path.extname(filePath)
+    const contentTypes: Record<string, string> = {
+      '.html': 'text/html',
+      '.js': 'application/javascript',
+      '.css': 'text/css',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+    }
+    const contentType = contentTypes[extname] || 'text/plain'
+    
+    // Read and serve file
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          res.writeHead(404, { 'Content-Type': 'text/html' })
+          res.end('<h1>404 Not Found</h1>')
+        } else {
+          res.writeHead(500)
+          res.end(`Server Error: ${err.code}`)
+        }
+      } else {
+        res.writeHead(200, { 
+          'Content-Type': contentType,
+          'Access-Control-Allow-Origin': '*'
+        })
+        res.end(content, 'utf-8')
+      }
+    })
+  })
+  
+  server.listen(PORT, () => {
+    // Server started
+  })
+  
+  return server
 }
 
 function watchAndRebuild(
   pluginName: string,
   pluginDir: string,
   distDir: string,
-  cwd: string
+  cwd: string,
+  server: http.Server | null
 ): void {
   let rebuildTimeout: NodeJS.Timeout | null = null
 
@@ -177,6 +256,9 @@ function watchAndRebuild(
   process.on("SIGINT", () => {
     console.log(`\n\n👋 Stopping preview...`)
     watcher.close()
+    if (server) {
+      server.close()
+    }
     process.exit(0)
   })
 }
