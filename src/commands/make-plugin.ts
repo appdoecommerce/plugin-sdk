@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 import { buildPlugin } from "./build-plugin.js"
 import { createApp } from "../api.js"
+import { generateSchemaForPlugin } from "./generate-schemas.js"
 
 export async function makePlugin(name: string, displayName?: string): Promise<void> {
   const safeName = name.trim()
@@ -38,20 +39,30 @@ export async function makePlugin(name: string, displayName?: string): Promise<vo
     createPluginFiles(pluginDir, safeName, appName)
     console.log(`✅ Files created\n`)
 
-    // Step 2: Build plugin to generate schema.json
+    // Step 2: Generate schema.json from props.ts
+    console.log(`📝 Generating schema from props.ts...`)
+    const pluginsDir = path.join(cwd, "plugins")
+    const schemaGenerated = await generateSchemaForPlugin(safeName, pluginsDir)
+    
+    if (!schemaGenerated) {
+      throw new Error("Failed to generate schema.json from props.ts")
+    }
+    console.log(`✅ Schema generated\n`)
+
+    // Step 3: Build plugin
     console.log(`🔨 Building plugin...`)
     await buildPlugin(safeName)
     console.log(`✅ Plugin built\n`)
 
-    // Step 3: Read generated schema
+    // Step 4: Read generated schema
     const schemaPath = path.join(distDir, "schema.json")
     if (!fs.existsSync(schemaPath)) {
-      throw new Error("schema.json not generated. Check props.ts for errors.")
+      throw new Error("schema.json not found in dist. Build may have failed.")
     }
 
     const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"))
 
-    // Step 4: Create app in backend
+    // Step 5: Create app in backend
     console.log(`🌐 Registering app in backend...`)
     const response = await createApp({
       name: appName,
@@ -63,7 +74,7 @@ export async function makePlugin(name: string, displayName?: string): Promise<vo
     console.log(`✅ App registered successfully!`)
     console.log(`   Service ID: ${response.service.id}\n`)
 
-    // Step 5: Update manifest with serviceId (both source and dist)
+    // Step 6: Update manifest with serviceId (both source and dist)
     updateManifestWithServiceId(
       pluginDir,
       distDir,
@@ -187,6 +198,15 @@ export function hydrate(element: HTMLElement, props: Props) {
 
   // Example: Add a dynamic class
   element.classList.add('hydrated')
+
+  // Dispatch custom event after hydration (recommended)
+  // This allows external code to listen and interact with the plugin
+  const event = new CustomEvent('appecom:plugin:hydrated', {
+    detail: { pluginName: '${safeName}', element, props },
+    bubbles: true,
+    cancelable: false
+  })
+  element.dispatchEvent(event)
 }
 `
 

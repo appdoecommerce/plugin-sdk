@@ -464,10 +464,36 @@ export function hydrate(element: HTMLElement, props: Props) {
   })
   
   // Adicionar animações, interatividade, etc.
+
+  // Dispatch custom event after hydration (ALTAMENTE RECOMENDADO)
+  const event = new CustomEvent('appecom:plugin:hydrated', {
+    detail: { pluginName: 'hero-banner', element, props },
+    bubbles: true,
+    cancelable: false
+  })
+  element.dispatchEvent(event)
 }
 ```
 
-**Nota**: O `element` passado é o wrapper `.appecom-{plugin}`, use `querySelector` para acessar elementos internos.
+**Notas importantes:**
+- O `element` passado é o wrapper `.appecom-{plugin}`, use `querySelector` para acessar elementos internos
+- **⚠️ ALTAMENTE RECOMENDADO**: Sempre dispare o evento `appecom:plugin:hydrated` no final do `hydrate()`
+- Este evento permite que código externo escute e interaja com o plugin após a hidratação
+- O evento inclui `pluginName`, `element` e `props` no `detail`
+
+**Exemplo de uso externo:**
+```typescript
+// Escutar quando qualquer plugin é hidratado
+document.addEventListener('appecom:plugin:hydrated', (e: CustomEvent) => {
+  const { pluginName, element, props } = e.detail
+  console.log(`Plugin ${pluginName} hydrated!`, element, props)
+  
+  // Fazer algo específico com o plugin
+  if (pluginName === 'hero-banner') {
+    // Adicionar analytics, modificar comportamento, etc.
+  }
+})
+```
 
 ### 🛡️ CSS Isolation (Isolamento Automático)
 
