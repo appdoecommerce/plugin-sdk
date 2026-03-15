@@ -1,8 +1,15 @@
 import dotenv from "dotenv"
 import path from "path"
 import fs from "fs"
+import FormData from "form-data"
+import fetch from "node-fetch"
 
 const APP_BASE = "http://localhost:3333/api/plugins"
+const PLUGIN_SERVER_URL = process.env.PLUGIN_SERVER_URL || "http://localhost:4000"
+
+// ============================================
+// Types
+// ============================================
 
 interface CreateAppResponse {
   service: {
@@ -25,6 +32,30 @@ interface CreateAppPayload {
   config: object
   version: string
 }
+
+interface DeployPluginResponse {
+  success: boolean
+  message: string
+  plugin: {
+    name: string
+    version: string
+    storeId: string
+    path: string
+    latest: string
+    deployedAt: string
+  }
+}
+
+interface DeployPluginOptions {
+  zipPath: string
+  pluginName: string
+  version: string
+  manifest: any
+}
+
+// ============================================
+// Functions
+// ============================================
 
 /**
  * Load environment variables from .env file
@@ -70,11 +101,11 @@ export async function createApp(payload: CreateAppPayload): Promise<CreateAppRes
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({})) as any
     throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
   }
 
-  return response.json()
+  return response.json() as Promise<CreateAppResponse>
 }
 
 /**
@@ -94,11 +125,11 @@ export async function deleteApp(serviceId: string): Promise<{ message: string }>
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({})) as any
     throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
   }
 
-  return response.json()
+  return response.json() as Promise<{ message: string }>
 }
 
 /**
@@ -118,11 +149,11 @@ export async function getScheme(serviceId: string): Promise<{ scheme: string }> 
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({})) as any
     throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
   }
 
-  return response.json()
+  return response.json() as Promise<{ scheme: string }>
 }
 
 /**
@@ -143,10 +174,48 @@ export async function updateScheme(serviceId: string, config: object): Promise<C
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({})) as any
     throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
   }
 
-  return response.json()
+  return response.json() as Promise<CreateAppResponse>
+}
+
+/**
+ * Deploy plugin to plugin server
+ */
+export async function deployPlugin(options: DeployPluginOptions): Promise<DeployPluginResponse> {
+  const cwd = process.cwd()
+  const { storeId, token } = loadEnv(cwd)
+
+  const form = new FormData()
+  
+  form.append("plugin", fs.createReadStream(options.zipPath))
+  form.append("name", options.pluginName)
+  form.append("version", options.version)
+  form.append("manifest", JSON.stringify(options.manifest))
+
+  const response = await fetch(`${PLUGIN_SERVER_URL}/api/plugins/deploy`, {
+    method: "POST",
+    body: form,
+    headers: {
+      ...form.getHeaders(),
+      "X-Store-ID": storeId,
+      "X-Integration-Token": token,
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({})) as any
+    throw new Error(error.message || `HTTP ${response.status}`)
+  }
+
+  const result = await response.json() as any
+  
+  if (!result.success) {
+    throw new Error(result.message || "Deploy failed")
+  }
+
+  return result
 }
 

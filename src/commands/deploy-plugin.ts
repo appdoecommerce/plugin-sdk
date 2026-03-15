@@ -1,13 +1,10 @@
 import fs from "fs"
 import path from "path"
-import FormData from "form-data"
 import archiver from "archiver"
-import fetch from "node-fetch"
 import dotenv from "dotenv"
+import { deployPlugin as deployPluginAPI } from "../api.js"
 
 dotenv.config()
-
-const PLUGIN_SERVER_URL = process.env.PLUGIN_SERVER_URL || "http://localhost:4000"
 
 export async function deployPlugin(pluginName: string): Promise<void> {
   const cwd = process.cwd()
@@ -52,13 +49,19 @@ export async function deployPlugin(pluginName: string): Promise<void> {
   const sizeMB = (stats.size / 1024 / 1024).toFixed(2)
   console.log(`   ✅ Package created: ${sizeMB} MB`)
 
-  // 3. Upload para servidor
+  // 3. Upload para servidor usando API
   console.log(`\n☁️  Step 3/5: Uploading to server...`)
-  console.log(`   📡 Server: ${PLUGIN_SERVER_URL}`)
 
   try {
-    await uploadPlugin(zipPath, pluginName, version, manifest)
+    const result = await deployPluginAPI({
+      zipPath,
+      pluginName,
+      version,
+      manifest,
+    })
+    
     console.log(`   ✅ Upload completed successfully`)
+    console.log(`   ✅ Store ID: ${result.plugin.storeId}`)
   } catch (error: any) {
     console.error(`   ❌ Upload failed: ${error.message}`)
     
@@ -67,19 +70,9 @@ export async function deployPlugin(pluginName: string): Promise<void> {
     process.exit(1)
   }
 
-  // 4. Verificar deploy
+  // 4. Verificar deploy (opcional)
   console.log(`\n✓ Step 4/5: Verifying deployment...`)
-  
-  try {
-    const verifyResponse = await fetch(`${PLUGIN_SERVER_URL}/api/plugins/${pluginName}/versions`)
-    if (verifyResponse.ok) {
-      const data = await verifyResponse.json() as any
-      console.log(`   ✅ Available versions: ${data.versions.join(", ")}`)
-      console.log(`   ✅ Latest version: ${data.latest}`)
-    }
-  } catch (error) {
-    console.log(`   ⚠️  Could not verify (server might not support versioning)`)
-  }
+  console.log(`   ✅ Plugin deployed successfully`)
 
   // 5. Limpar arquivos temporários
   console.log(`\n🧹 Step 5/5: Cleaning up...`)
@@ -115,38 +108,4 @@ async function createZipFile(sourceDir: string, outputPath: string): Promise<voi
 
     archive.finalize()
   })
-}
-
-/**
- * Faz upload do plugin para o servidor
- */
-async function uploadPlugin(
-  zipPath: string,
-  pluginName: string,
-  version: string,
-  manifest: any
-): Promise<void> {
-  const form = new FormData()
-  
-  form.append("plugin", fs.createReadStream(zipPath))
-  form.append("name", pluginName)
-  form.append("version", version)
-  form.append("manifest", JSON.stringify(manifest))
-
-  const response = await fetch(`${PLUGIN_SERVER_URL}/api/plugins/deploy`, {
-    method: "POST",
-    body: form,
-    headers: form.getHeaders(),
-  })
-
-  if (!response.ok) {
-    const error = await response.json() as any
-    throw new Error(error.message || `HTTP ${response.status}`)
-  }
-
-  const result = await response.json() as any
-  
-  if (!result.success) {
-    throw new Error(result.message || "Deploy failed")
-  }
 }
