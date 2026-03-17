@@ -43,7 +43,7 @@ appecom prepare
 appecom plugin:create banner-hero --name "Banner Hero"
 
 # 4. Editar os arquivos do plugin
-# - plugins/banner-hero/props.ts (schema)
+# - plugins/banner-hero/props.ts (definir props - veja PROPS-GUIDE.md)
 # - plugins/banner-hero/server.ts (SSR)
 # - plugins/banner-hero/client.ts (hydration)
 # - plugins/banner-hero/style.scss (CSS)
@@ -61,6 +61,8 @@ appecom preview banner-hero --watch
 # 7. Build final (se necessário)
 appecom build
 ```
+
+**📖 Novo em props?** Leia o [Guia Completo de Props](PROPS-GUIDE.md) para aprender sobre anotações JSDoc, tipos de dados, formatos especiais e boas práticas.
 
 ## 📦 Comandos Disponíveis
 
@@ -629,6 +631,45 @@ Cada plugin possui seu próprio `manifest.json` em **dois locais**:
 - `@format` - Formato (uri, email, date-time, etc)
 - `@TJS-type` - Tipo JSON Schema (integer, string, etc)
 - `@default` - Valor padrão
+
+## 📚 Documentação Adicional
+
+### Guias Detalhados
+
+- **[Guia de Props](PROPS-GUIDE.md)** 📝 - Documentação completa sobre como criar e configurar props para plugins
+  - Anotações JSDoc suportadas (@title, @description, @default, @format, etc.)
+  - Tipos de dados (string, number, boolean, enum, arrays, objetos)
+  - Formatos especiais (color, date, imagepicker)
+  - Estruturas complexas e validações
+  - Exemplos práticos e boas práticas
+
+- **[Manifesto de Plugin](PLUGIN-MANIFEST.md)** 📦 - Estrutura e configuração do manifest.json
+  - Campos obrigatórios e opcionais
+  - Versionamento de plugins
+  - Sincronização com sistema
+
+- **[Isolamento de CSS](EXAMPLE-CSS-ISOLATION.md)** 🎨 - Como funciona o isolamento automático de CSS
+  - Prefix automático `.appecom-{plugin}`
+  - Boas práticas de nomenclatura
+  - Evitar conflitos entre plugins
+
+### Exemplos de Plugins
+
+Os seguintes plugins servem como referência:
+
+- **`plugins/reviews/`** - Plugin de avaliações com carousel/grid
+  - Arrays de objetos complexos
+  - Configurações de cores e layout
+  - Integração com cliente
+
+- **`plugins/product-tabs/`** - Plugin de abas por produto
+  - Objetos aninhados (InsertionConfig, ColorConfig)
+  - Match por URL pathname
+  - Accordion vertical com animações
+
+- **`plugins/youtube-embed/`** - Plugin simples de embed
+  - Props básicas
+  - Exemplo minimalista
 
 ## 🤝 Contribuindo
 

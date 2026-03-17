@@ -107,6 +107,9 @@ async function generatePreview(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Preview: ${pluginName}</title>
   <link rel="stylesheet" href="./style.css">
+  <script>
+      window.PREVIEW_MODE = true;
+  </script>
 </head>
 <body>
   ${html}
@@ -161,8 +164,9 @@ function startPreviewServer(distDir: string, pluginName: string): http.Server {
   const PORT = 3030
   
   const server = http.createServer((req, res) => {
-    // Get requested file path
-    let filePath = req.url === '/' ? '/preview.html' : req.url || '/preview.html'
+    // Get requested file path (remove query params)
+    const urlWithoutQuery = (req.url || '/').split('?')[0]
+    let filePath = urlWithoutQuery === '/' ? '/preview.html' : urlWithoutQuery
     filePath = path.join(distDir, filePath)
     
     // Determine content type
