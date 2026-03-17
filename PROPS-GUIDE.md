@@ -783,7 +783,7 @@ appecom schema:generate
 Ou faça o build do plugin (que gera o schema automaticamente):
 
 ```bash
-appecom build nome-do-plugin
+appecom plugin:build nome-do-plugin
 ```
 
 O arquivo `schema.json` será gerado automaticamente a partir das anotações JSDoc.

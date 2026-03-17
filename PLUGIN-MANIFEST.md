@@ -200,7 +200,7 @@ Cada plugin tem sua própria versão independente:
 
 **Quando atualizar a versão:**
 - Após mudanças no código (server.ts, client.ts, style.scss)
-- Antes de fazer deploy (`appecom deploy <plugin>`)
+- Antes de fazer deploy (`appecom plugin:deploy <plugin>`)
 - Siga [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH
 
 ---
@@ -219,7 +219,7 @@ appecom plugin:create instagram-feed --name "Instagram Feed"
 
 **Durante build:**
 ```bash
-appecom build instagram-feed
+appecom plugin:build instagram-feed
 ```
 - Copia manifest para `dist/instagram-feed/manifest.json`
 - Preserva `serviceId` e `version`

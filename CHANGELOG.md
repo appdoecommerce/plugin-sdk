@@ -5,7 +5,7 @@
 ### ✨ Added
 
 #### Plugin SDK
-- **`appecom deploy <plugin>`** - Novo comando para deploy de plugins com versionamento
+- **`appecom plugin:deploy <plugin>`** - Novo comando para deploy de plugins com versionamento
   - Cria pacote zip automaticamente
   - Lê versão do manifest.json
   - Upload para plugin-server com progress

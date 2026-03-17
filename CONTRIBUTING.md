@@ -13,11 +13,12 @@ plugin-sdk/
 │   │   ├── prepare.ts              # Comando: appecom prepare
 │   │   ├── make-plugin.ts          # Comando: appecom plugin:create
 │   │   ├── plugin-delete.ts        # Comando: appecom plugin:delete
-│   │   ├── build-plugin.ts         # Comando: appecom build
+│   │   ├── build-plugin.ts         # Comando: appecom plugin:build
+│   │   ├── preview.ts              # Comando: appecom plugin:preview
+│   │   ├── deploy-plugin.ts        # Comando: appecom plugin:deploy
 │   │   ├── watch.ts                # Comando: appecom watch
-│   │   ├── preview.ts              # Comando: appecom preview
 │   │   ├── scheme-generate.ts      # Comando: appecom scheme:generate
-│   │   ├── scheme-get.ts           # Comando: appecom scheme:get
+│   │   ├── scheme-get.ts           # Comando: appecom scheme:download
 │   │   └── scheme-upload.ts        # Comando: appecom scheme:upload
 │   ├── utils/                      # Utilitários compartilhados
 │   │   ├── css-isolation.ts        # Plugin PostCSS para isolamento
@@ -135,7 +136,7 @@ program
   .action(generateScheme)
 
 program
-  .command("scheme:get <plugin-name>")
+  .command("scheme:download <plugin-name>")
   .description("Download current schema from backend (with panel modifications)")
   .action(getSchemeFromBackend)
 

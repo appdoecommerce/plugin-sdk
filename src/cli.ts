@@ -28,6 +28,7 @@ program
   .description("Prepare the development environment")
   .action(prepareEnvironment)
 
+// Plugin commands
 program
   .command("plugin:create <name>")
   .description("Create a new plugin with boilerplate files")
@@ -40,29 +41,14 @@ program
   .command("plugin:delete <name>")
   .description("Delete plugin from backend and local filesystem")
   .action(deletePlugin)
-  
-program
-  .command("scheme:generate <plugin-name>")
-  .description("Generate JSON schema from props.ts for a specific plugin")
-  .action(generateScheme)
 
 program
-  .command("scheme:get <plugin-name>")
-  .description("Download current schema from backend (with panel modifications)")
-  .action(getSchemeFromBackend)
+  .command("plugin:build [plugin-name]")
+  .description("Build plugin(s) for production (server.js, client.js, style.css)")
+  .action(buildPlugin)
 
 program
-  .command("scheme:upload <plugin-name>")
-  .description("Upload local schema to backend")
-  .action(uploadSchemeToBackend)
-  
-program
-  .command("watch")
-  .description("Watch plugins/ for changes and auto-build")
-  .action(watchPlugins)
-  
-program
-  .command("preview <plugin-name>")
+  .command("plugin:preview <plugin-name>")
   .description("Generate and open a preview of the plugin in the browser")
   .option("-w, --watch", "Watch for changes and auto-rebuild")
   .action((pluginName, options) => {
@@ -70,13 +56,30 @@ program
   })
 
 program
-  .command("build [plugin-name]")
-  .description("Build plugin(s) for production (server.js, client.js, style.css)")
-  .action(buildPlugin)
-
-program
-  .command("deploy <plugin-name>")
+  .command("plugin:deploy <plugin-name>")
   .description("Deploy plugin to plugin server with versioning")
   .action(deployPlugin)
+
+// Schema commands
+program
+  .command("scheme:generate <plugin-name>")
+  .description("Generate JSON schema from props.ts for a specific plugin")
+  .action(generateScheme)
+
+program
+  .command("scheme:download <plugin-name>")
+  .description("Download current schema from backend (with panel modifications)")
+  .action(getSchemeFromBackend)
+
+program
+  .command("scheme:upload <plugin-name>")
+  .description("Upload local schema to backend")
+  .action(uploadSchemeToBackend)
+
+// Watch command  
+program
+  .command("watch")
+  .description("Watch plugins/ for changes and auto-build")
+  .action(watchPlugins)
 
 program.parse()

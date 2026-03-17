@@ -53,13 +53,13 @@ appecom scheme:generate banner-hero
 appecom scheme:upload banner-hero
 
 # 6. Preview do plugin no browser
-appecom preview banner-hero
+appecom plugin:preview banner-hero
 
 # OU usar preview com watch (recomendado para desenvolvimento)
-appecom preview banner-hero --watch
+appecom plugin:preview banner-hero --watch
 
 # 7. Build final (se necessário)
-appecom build
+appecom plugin:build
 ```
 
 **📖 Novo em props?** Leia o [Guia Completo de Props](PROPS-GUIDE.md) para aprender sobre anotações JSDoc, tipos de dados, formatos especiais e boas práticas.
@@ -73,13 +73,13 @@ appecom build
 | `appecom prepare` | Inicializa ambiente (cria .env e plugins/) |
 | `appecom plugin:create <name>` | Cria novo plugin e registra no sistema |
 | `appecom plugin:delete <name>` | Deleta plugin do sistema e arquivos locais |
-| `appecom build [plugin]` | Compila plugin(s) para produção |
-| `appecom watch` | Auto-rebuild ao detectar mudanças |
-| `appecom preview <plugin>` | Abre preview no browser |
+| `appecom plugin:build [plugin]` | Compila plugin(s) para produção |
+| `appecom plugin:preview <plugin>` | Abre preview no browser |
+| `appecom plugin:deploy <plugin>` | Deploy para plugin-server com versionamento |
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
-| `appecom scheme:get <plugin>` | Baixa schema do sistema |
+| `appecom scheme:download <plugin>` | Baixa schema do sistema |
 | `appecom scheme:upload <plugin>` | Envia schema para sistema |
-| `appecom deploy <plugin>` | Deploy para plugin-server com versionamento |
+| `appecom watch` | Auto-rebuild ao detectar mudanças |
 
 ---
 
@@ -161,18 +161,18 @@ appecom plugin:delete youtube-embed
 - Plugin registrado no sistema (com `serviceId` no manifest.json)
 - Credenciais válidas no `.env`
 
-### `appecom build [plugin-name]`
+### `appecom plugin:build [plugin-name]`
 
 Compila plugins para produção.
 
 **Compilar todos os plugins:**
 ```bash
-appecom build
+appecom plugin:build
 ```
 
 **Compilar um plugin específico:**
 ```bash
-appecom build banner-hero
+appecom plugin:build banner-hero
 ```
 
 **Output gerado em `dist/{plugin-name}/`:**
@@ -204,18 +204,18 @@ appecom watch
 - 📋 Atualiza schema.json quando props.ts muda
 - 📦 Atualiza plugins-registry.json automaticamente
 
-### `appecom preview <plugin-name>`
+### `appecom plugin:preview <plugin-name>`
 
 Gera preview do plugin e abre no browser.
 
 **Exemplo:**
 ```bash
-appecom preview banner-hero
+appecom plugin:preview banner-hero
 ```
 
 **Com watch mode:**
 ```bash
-appecom preview banner-hero --watch
+appecom plugin:preview banner-hero --watch
 ```
 
 **O que faz:**
@@ -246,13 +246,13 @@ appecom scheme:generate banner-hero
 - Após modificar `props.ts` e querer atualizar o schema
 - Antes de fazer upload para o sistema
 
-### `appecom scheme:get <plugin-name>`
+### `appecom scheme:download <plugin-name>`
 
 Baixa o schema atual do sistema (com modificações feitas no painel).
 
 **Exemplo:**
 ```bash
-appecom scheme:get banner-hero
+appecom scheme:download banner-hero
 ```
 
 **O que faz:**
@@ -299,7 +299,7 @@ appecom scheme:generate my-plugin
 appecom scheme:upload my-plugin
 
 # 4. Ou, baixar schema modificado no painel
-appecom scheme:get my-plugin
+appecom scheme:download my-plugin
 ```
 
 ---
@@ -364,7 +364,7 @@ plugins/
 ```
 
 **⚠️ Requisitos:**
-- Plugin já buildado (`appecom build <plugin-name>`)
+- Plugin já buildado (`appecom plugin:build <plugin-name>`)
 - Plugin-server rodando
 - `PLUGIN_SERVER_URL` configurado no `.env`
 
@@ -378,10 +378,10 @@ plugins/
 # 1. Editar plugin
 # 2. Atualizar version no manifest.json
 # 3. Build
-appecom build reviews
+appecom plugin:build reviews
 
 # 4. Deploy
-appecom deploy reviews
+appecom plugin:deploy reviews
 
 # 5. Verificar versões no servidor
 curl http://localhost:4000/api/plugins/reviews/versions
