@@ -75,7 +75,7 @@ appecom plugin:build
 | `appecom plugin:delete <name>` | Deleta plugin do sistema e arquivos locais |
 | `appecom plugin:build [plugin]` | Compila plugin(s) para produção |
 | `appecom plugin:preview <plugin>` | Abre preview no browser |
-| `appecom plugin:deploy <plugin>` | Deploy para o servidor (use --force para sobrescrever) |
+| `appecom plugin:deploy <plugin>` | Deploy para o sistema (use --force para sobrescrever) |
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
 | `appecom scheme:download <plugin>` | Baixa schema do sistema |
 | `appecom scheme:upload <plugin>` | Envia schema para sistema |
@@ -176,11 +176,11 @@ appecom plugin:build banner-hero
 ```
 
 **Output gerado em `dist/{plugin-name}/`:**
-- `server.js` - Bundle ESM (para Node.js sistema)
-- `client.js` - Bundle ESM (para browser)
-- `style.css` - CSS compilado **com isolamento automático** (prefix `.appecom-{plugin}`)
-- `schema.json` - JSON Schema auto-gerado
-- `manifest.json` - Metadados do plugin (torna o plugin auto-contido)
+- `server.js` - Bundle ESM para renderização server-side
+- `client.js` - Bundle ESM para hidratação no browser
+- `style.css` - CSS compilado com isolamento automático (prefix `.appecom-{plugin}`)
+- `schema.json` - JSON Schema auto-gerado das props
+- `manifest.json` - Metadados do plugin
 - `props.ts` - Interface TypeScript (referência)
 
 **Além disso, gera:**
@@ -306,9 +306,9 @@ appecom scheme:download my-plugin
 
 ### `appecom plugin:deploy <plugin-name>`
 
-**🆕 Deploy de plugin para servidor com versionamento**
+**🆕 Deploy de plugin para o sistema**
 
-Faz deploy do plugin para o servidor com controle automático de versão.
+Faz deploy do plugin para o sistema com controle automático de versão.
 
 **Exemplo básico:**
 ```bash
@@ -327,12 +327,10 @@ appecom plugin:deploy reviews -f
 
 **O que faz:**
 1. ✅ Lê `version` do `manifest.json`
-2. ✅ Cria pacote zip do plugin (dist/)
-3. ✅ Faz upload para servidor
-4. ✅ Servidor extrai para `plugins/<storeId>/<name>/<version>/`
-5. ✅ Atualiza symlink `latest` → nova versão
-6. ✅ Registra deploy em histórico
-7. ✅ Remove arquivo zip local
+2. ✅ Cria pacote do plugin
+3. ✅ Faz upload para o sistema
+4. ✅ Registra deploy com versionamento
+5. ✅ Limpa arquivos temporários
 
 **Exemplo de saída:**
 ```
@@ -361,29 +359,14 @@ appecom plugin:deploy reviews -f
 📦 Deployed: reviews@1.0.0
 ```
 
-**Versionamento:**
-```
-plugins/
-├── <storeId>/
-│   ├── reviews/
-│   │   ├── 1.0.0/           # Deploy 1
-│   │   ├── 1.0.1/           # Deploy 2
-│   │   ├── 1.1.0/           # Deploy 3
-│   │   ├── latest/          # Symlink → 1.1.0
-│   │   └── versions.json    # Histórico
-```
-
 **⚠️ Requisitos:**
 - Plugin já buildado (`appecom plugin:build <plugin-name>`)
-- servidor rodando
-- `PLUGIN_SERVER_URL` configurado no `.env`
-- Credenciais válidas (`APPECOM_STOREID` e `APPECOM_SECRET`)
+- Credenciais válidas no `.env` (`APPECOM_STOREID` e `APPECOM_SECRET`)
 
 **⚠️ Notas:**
-- **Sem --force**: Não pode fazer deploy da mesma versão duas vezes
+- **Sem --force**: Não pode fazer deploy da mesma versão duas vezes (precisa incrementar no manifest.json)
 - **Com --force**: Sobrescreve a versão existente (útil durante desenvolvimento)
-- Versões antigas são mantidas para rollback
-- Em produção, recomenda-se sempre incrementar a versão ao invés de usar --force
+- Em produção, sempre incremente a versão ao invés de usar --force
 
 **Workflow recomendado (Desenvolvimento):**
 ```bash
@@ -404,9 +387,6 @@ appecom plugin:build reviews
 
 # 4. Deploy (sem --force, nova versão)
 appecom plugin:deploy reviews
-
-# 5. Verificar versões no servidor
-curl http://localhost:4000/api/plugins/<storeId>/reviews/versions
 ```
 
 ---
