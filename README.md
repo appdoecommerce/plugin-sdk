@@ -73,9 +73,9 @@ appecom plugin:build
 | `appecom prepare` | Inicializa ambiente (cria .env e plugins/) |
 | `appecom plugin:create <name>` | Cria novo plugin e registra no sistema |
 | `appecom plugin:delete <name>` | Deleta plugin do sistema e arquivos locais |
-| `appecom plugin:build [plugin]` | Compila plugin(s) para produção |
+| `appecom plugin:build [plugin]` | Compila plugin(s) para produção (use --force para rebuild sem incrementar versão) |
 | `appecom plugin:preview <plugin>` | Abre preview no browser |
-| `appecom plugin:deploy <plugin>` | Deploy para plugin-server com versionamento |
+| `appecom plugin:deploy <plugin>` | Deploy para plugin-server com versionamento (use --force para mesma versão) |
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
 | `appecom scheme:download <plugin>` | Baixa schema do sistema |
 | `appecom scheme:upload <plugin>` | Envia schema para sistema |
@@ -174,6 +174,14 @@ appecom plugin:build
 ```bash
 appecom plugin:build banner-hero
 ```
+
+**Forçar rebuild sem incrementar versão:**
+```bash
+appecom plugin:build banner-hero --force
+```
+
+**Opções:**
+- `-f, --force` - Força o build sem incrementar a versão do plugin
 
 **Output gerado em `dist/{plugin-name}/`:**
 - `server.js` - Bundle ESM (para Node.js sistema)
@@ -315,6 +323,14 @@ Faz deploy do plugin para o plugin-server com controle automático de versão.
 appecom deploy reviews
 ```
 
+**Forçar deploy da mesma versão:**
+```bash
+appecom deploy reviews --force
+```
+
+**Opções:**
+- `-f, --force` - Força o deploy da mesma versão sem incrementar (sobrescreve a versão existente)
+
 **O que faz:**
 1. ✅ Lê `version` do `manifest.json`
 2. ✅ Cria pacote zip do plugin (dist/)
@@ -369,19 +385,23 @@ plugins/
 - `PLUGIN_SERVER_URL` configurado no `.env`
 
 **⚠️ Notas:**
-- Não pode fazer deploy da mesma versão duas vezes
-- Atualize `version` no `manifest.json` para novo deploy
+- Não pode fazer deploy da mesma versão duas vezes (use `--force` para sobrescrever)
+- Com `--force`: permite fazer deploy da mesma versão sem incrementar
+- Sem `--force`: atualize `version` no `manifest.json` para novo deploy
 - Versões antigas são mantidas para rollback
 
 **Workflow recomendado:**
 ```bash
 # 1. Editar plugin
-# 2. Atualizar version no manifest.json
+# 2. Atualizar version no manifest.json (ou use --force)
 # 3. Build
 appecom plugin:build reviews
 
 # 4. Deploy
 appecom plugin:deploy reviews
+
+# 4b. Ou forçar deploy da mesma versão (desenvolvimento)
+appecom plugin:deploy reviews --force
 
 # 5. Verificar versões no servidor
 curl http://localhost:4000/api/plugins/reviews/versions
