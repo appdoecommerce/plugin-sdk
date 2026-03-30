@@ -181,7 +181,7 @@ appecom plugin:build banner-hero --force
 ```
 
 **Opções:**
-- `-f, --force` - Força o build sem incrementar a versão do plugin
+- `-f, --force` - Força o rebuild (útil para desenvolvimento e iteração rápida)
 
 **Output gerado em `dist/{plugin-name}/`:**
 - `server.js` - Bundle ESM (para Node.js sistema)
@@ -312,7 +312,7 @@ appecom scheme:download my-plugin
 
 ---
 
-### `appecom deploy <plugin-name>`
+### `appecom plugin:deploy <plugin-name>`
 
 **🆕 Deploy de plugin para servidor com versionamento**
 
@@ -320,12 +320,12 @@ Faz deploy do plugin para o plugin-server com controle automático de versão.
 
 **Exemplo:**
 ```bash
-appecom deploy reviews
+appecom plugin:deploy reviews
 ```
 
 **Forçar deploy da mesma versão:**
 ```bash
-appecom deploy reviews --force
+appecom plugin:deploy reviews --force
 ```
 
 **Opções:**
