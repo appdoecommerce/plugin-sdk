@@ -45,7 +45,10 @@ program
 program
   .command("plugin:build [plugin-name]")
   .description("Build plugin(s) for production (server.js, client.js, style.css)")
-  .action(buildPlugin)
+  .option("-f, --force", "Force rebuild without version increment")
+  .action((pluginName, options) => {
+    buildPlugin(pluginName, { force: options.force })
+  })
 
 program
   .command("plugin:preview <plugin-name>")
@@ -58,7 +61,10 @@ program
 program
   .command("plugin:deploy <plugin-name>")
   .description("Deploy plugin to plugin server with versioning")
-  .action(deployPlugin)
+  .option("-f, --force", "Force deploy the same version without incrementing")
+  .action((pluginName, options) => {
+    deployPlugin(pluginName, { force: options.force })
+  })
 
 // Schema commands
 program

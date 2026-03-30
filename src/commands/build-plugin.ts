@@ -7,7 +7,11 @@ import { generatePluginRegistry } from "./generate-registry.js"
 import { processCssIsolation } from "../utils/css-isolation.js"
 import { generatePluginManifest, getWorkspaceVersion } from "../utils/generate-manifest.js"
 
-export async function buildPlugin(pluginName?: string): Promise<void> {
+export interface BuildOptions {
+  force?: boolean
+}
+
+export async function buildPlugin(pluginName?: string, options?: BuildOptions): Promise<void> {
   const cwd = process.cwd()
   const pluginsDir = path.join(cwd, "plugins")
 
@@ -42,7 +46,7 @@ export async function buildPlugin(pluginName?: string): Promise<void> {
     process.exit(1)
   }
 
-  console.log(`🔨 Building ${pluginsToBuild.length} plugin(s)...\n`)
+  console.log(`🔨 Building ${pluginsToBuild.length} plugin(s)...${options?.force ? ' (--force mode)' : ''}\n`)
 
   for (const plugin of pluginsToBuild) {
     await buildSinglePlugin(plugin, pluginsDir, cwd)
