@@ -51,6 +51,7 @@ interface DeployPluginOptions {
   pluginName: string
   version: string
   manifest: any
+  force?: boolean
 }
 
 // ============================================
@@ -194,6 +195,7 @@ export async function deployPlugin(options: DeployPluginOptions): Promise<Deploy
   form.append("name", options.pluginName)
   form.append("version", options.version)
   form.append("manifest", JSON.stringify(options.manifest))
+  form.append("force", String(options.force || false))
 
   const response = await fetch(`${PLUGIN_SERVER_URL}/api/plugins/deploy`, {
     method: "POST",

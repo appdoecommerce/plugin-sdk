@@ -1,5 +1,37 @@
 # Changelog - Plugin System
 
+## [1.2.0] - 2026-03-29
+
+### ✨ Added
+
+#### Plugin SDK
+- **Flag `--force` no comando `plugin:deploy`** - Permite sobrescrever versão existente
+  - Útil durante desenvolvimento para não precisar incrementar versão a cada teste
+  - Uso: `appecom plugin:deploy <plugin> --force` ou `-f`
+  - Quando usado, remove e sobrescreve a versão existente no servidor
+  - Atualiza histórico de versões automaticamente
+
+#### Plugin Server
+- **Suporte a force deploy** - Aceita parâmetro `force` no endpoint `/api/plugins/deploy`
+  - Quando `force=true`, permite sobrescrever versão existente
+  - Remove versão anterior antes de extrair nova
+  - Atualiza `versions.json` removendo entradas duplicadas
+
+### 📝 Changed
+
+#### Comandos renomeados (nomenclatura consistente)
+- `appecom build` → `appecom plugin:build`
+- `appecom preview` → `appecom plugin:preview`
+- `appecom scheme:get` → `appecom scheme:download`
+- `appecom deploy` → `appecom plugin:deploy`
+
+#### Documentação
+- README.md atualizado com informações sobre `--force`
+- Exemplos de workflow para desenvolvimento vs produção
+- Tabela de comandos reorganizada por categoria
+
+---
+
 ## [1.1.0] - 2026-03-13
 
 ### ✨ Added

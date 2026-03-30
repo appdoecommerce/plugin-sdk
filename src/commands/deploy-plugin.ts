@@ -6,7 +6,11 @@ import { deployPlugin as deployPluginAPI } from "../api.js"
 
 dotenv.config()
 
-export async function deployPlugin(pluginName: string): Promise<void> {
+export interface DeployOptions {
+  force?: boolean
+}
+
+export async function deployPlugin(pluginName: string, options: DeployOptions = {}): Promise<void> {
   const cwd = process.cwd()
   const distDir = path.join(cwd, "dist", pluginName)
   const tmpDir = path.join(cwd, ".tmp")
@@ -14,11 +18,11 @@ export async function deployPlugin(pluginName: string): Promise<void> {
   // Validar se plugin existe
   if (!fs.existsSync(distDir)) {
     console.error(`❌ Error: Plugin "${pluginName}" not found in dist/`)
-    console.error(`   Run 'appecom build ${pluginName}' first`)
+    console.error(`   Run 'appecom plugin:build ${pluginName}' first`)
     process.exit(1)
   }
 
-  console.log(`\n🚀 Deploying plugin: ${pluginName}\n`)
+  console.log(`\n🚀 Deploying plugin: ${pluginName}${options.force ? ' (force mode)' : ''}\n`)
 
   // 1. Ler manifest para pegar versão
   console.log(`📋 Step 1/5: Reading manifest...`)
@@ -58,6 +62,7 @@ export async function deployPlugin(pluginName: string): Promise<void> {
       pluginName,
       version,
       manifest,
+      force: options.force || false,
     })
     
     console.log(`   ✅ Upload completed successfully`)

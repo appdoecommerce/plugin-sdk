@@ -58,7 +58,10 @@ program
 program
   .command("plugin:deploy <plugin-name>")
   .description("Deploy plugin to plugin server with versioning")
-  .action(deployPlugin)
+  .option("-f, --force", "Force deploy, overwriting existing version")
+  .action((pluginName, options) => {
+    deployPlugin(pluginName, { force: options.force })
+  })
 
 // Schema commands
 program
