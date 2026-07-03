@@ -75,6 +75,7 @@ async function buildSinglePlugin(
 
   const serverPath = path.join(pluginDir, "server.ts")
   const clientPath = path.join(pluginDir, "client.ts")
+  const loadersPath = path.join(pluginDir, "loaders.ts")
   const stylePath = path.join(pluginDir, "style.scss")
 
   let builtFiles: string[] = []
@@ -118,6 +119,26 @@ async function buildSinglePlugin(
     }
   }
 
+  // Build loaders.ts (ESM for Node.js)
+  if (fs.existsSync(loadersPath)) {
+    try {
+      await build({
+        entryPoints: [loadersPath],
+        bundle: true,
+        outfile: path.join(distDir, "loaders.js"),
+        platform: "node",
+        format: "esm",
+        target: "node18",
+        external: ["node:*"],
+        minify: false,
+      })
+      builtFiles.push("loaders.js")
+    } catch (error) {
+      console.error(`   ❌ Failed to build loaders.ts:`, error)
+      throw error
+    }
+  }
+
   // Compile style.scss with CSS isolation
   if (fs.existsSync(stylePath)) {
     try {
@@ -148,9 +169,10 @@ async function buildSinglePlugin(
     builtFiles.push("props.ts")
   }
 
-  // Copy schema.json (don't regenerate - preserve dashboard changes)
-  const schemaSourcePath = path.join(pluginDir, "schema.json")
-  if (fs.existsSync(schemaSourcePath)) {
+  // Generate schema.json from props.ts (source of truth)
+  const schemaGenerated = await generateSchemaForPlugin(pluginName, pluginsDir)
+  if (schemaGenerated) {
+    const schemaSourcePath = path.join(pluginDir, "schema.json")
     const schemaDestPath = path.join(distDir, "schema.json")
     fs.copyFileSync(schemaSourcePath, schemaDestPath)
     builtFiles.push("schema.json")

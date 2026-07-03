@@ -6,6 +6,7 @@ Este guia documenta como criar e configurar props para plugins do App do E-comme
 
 - [Conceitos Básicos](#conceitos-básicos)
 - [Anotações JSDoc](#anotações-jsdoc)
+- [Loaders via Props](#loaders-via-props)
 - [Tipos de Dados](#tipos-de-dados)
 - [Formatos Especiais](#formatos-especiais)
 - [Estruturas Complexas](#estruturas-complexas)
@@ -154,6 +155,67 @@ Força um tipo específico no JSON Schema (útil para inteiros).
  */
 quantidade: number
 ```
+
+---
+
+## Loaders via Props
+
+O SDK suporta declarar botões de loader diretamente no `props.ts`. O `schema.json` é gerado automaticamente a partir dessas anotações.
+
+### Tags de Loader
+
+#### `@loaderType`
+Define o tipo do loader no editor.
+
+Valores suportados:
+- `oauth`
+- `action`
+- `form`
+
+#### `@loaderName`
+Define qual função em `loaders.ts` será executada.
+
+#### `@requiresConfirmation` (opcional)
+Quando `true`, pede confirmação antes de executar.
+
+### Exemplo Completo
+
+```typescript
+export interface Props {
+  /**
+   * @title Conectar Instagram
+   * @description Clique para conectar. O callback finaliza automaticamente.
+   * @loaderType oauth
+   * @loaderName connectInstagram
+   */
+  connectInstagram: string
+
+  /**
+   * @title Sincronizar Feed
+   * @description Busca posts recentes do Instagram
+   * @loaderType action
+   * @loaderName syncInstagramFeed
+   * @requiresConfirmation true
+   */
+  syncFeed: string
+}
+```
+
+### Como gerar e publicar
+
+```bash
+appecom scheme:generate meu-plugin
+appecom plugin:build meu-plugin
+appecom plugin:deploy meu-plugin --force
+appecom scheme:upload meu-plugin
+```
+
+### Regras importantes
+
+- A fonte de verdade do schema deve ser o `props.ts`.
+- Evite editar `schema.json` manualmente para campos de loader.
+- O `plugin:build` já regenera `schema.json` baseado no `props.ts`.
+- Mantenha nomes de `@loaderName` iguais aos exports em `loaders.ts`.
 
 ---
 

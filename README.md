@@ -64,6 +64,8 @@ appecom plugin:build
 
 **📖 Novo em props?** Leia o [Guia Completo de Props](PROPS-GUIDE.md) para aprender sobre anotações JSDoc, tipos de dados, formatos especiais e boas práticas.
 
+**🧩 Loaders no props.ts**: use `@loaderType`, `@loaderName` e `@requiresConfirmation` no `props.ts`. O `plugin:build` regenera `schema.json` automaticamente com esses campos.
+
 ## 📦 Comandos Disponíveis
 
 ### Resumo Rápido
@@ -185,6 +187,11 @@ appecom plugin:build banner-hero
 
 **Além disso, gera:**
 - `dist/plugins-registry.json` - Mapa de todos os plugins disponíveis
+
+**Importante para loaders**:
+- A fonte de verdade de loaders deve ser o `props.ts`.
+- Evite editar `schema.json` manualmente para botões loader.
+- O build ja aplica as tags JSDoc de loader no schema final.
 
 📖 **Leia mais**: [PLUGIN-MANIFEST.md](PLUGIN-MANIFEST.md)
 
