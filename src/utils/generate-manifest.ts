@@ -12,6 +12,15 @@ export interface PluginManifest {
   schema: string
 }
 
+export interface ThemeManifest {
+  themeId?: string
+  name: string
+  type: string
+  version: string
+  scheme: string
+  cleanScheme: string
+}
+
 /**
  * Generate manifest.json for a single plugin
  * Copies from source if exists, otherwise creates new
@@ -53,6 +62,41 @@ export function generatePluginManifest(
     return true
   } catch (error) {
     console.error(`   ⚠️  Failed to generate manifest.json:`, error)
+    return false
+  }
+}
+
+export function generateThemeManifest(
+  themeName: string,
+  distDir: string,
+  cwd: string,
+  version: string = "1.0.0"
+): boolean {
+  const sourceManifestPath = path.join(cwd, "themes", themeName, "manifest.json")
+  const distManifestPath = path.join(distDir, "manifest.json")
+
+  try {
+    let manifest: ThemeManifest
+
+    if (fs.existsSync(sourceManifestPath)) {
+      manifest = JSON.parse(fs.readFileSync(sourceManifestPath, "utf-8"))
+      manifest.type = manifest.type || themeName
+      manifest.scheme = "./scheme.json"
+      manifest.cleanScheme = "./clean-scheme.json"
+    } else {
+      manifest = {
+        name: themeName,
+        type: themeName,
+        version,
+        scheme: "./scheme.json",
+        cleanScheme: "./clean-scheme.json",
+      }
+    }
+
+    fs.writeFileSync(distManifestPath, JSON.stringify(manifest, null, 2), "utf-8")
+    return true
+  } catch (error) {
+    console.error(`   ⚠️  Failed to generate theme manifest.json:`, error)
     return false
   }
 }

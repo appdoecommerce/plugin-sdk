@@ -11,6 +11,26 @@ type LoaderFieldMeta = {
   requiresConfirmation?: boolean
 }
 
+function generateRawSchemaFromPropsFile(propsFile: string): Record<string, any> | null {
+  const settings: TJS.PartialArgs = {
+    required: true,
+    noExtraProps: true,
+  }
+
+  const compilerOptions: TJS.CompilerOptions = {
+    strictNullChecks: true,
+  }
+
+  try {
+    const program = TJS.getProgramFromFiles([propsFile], compilerOptions)
+    const schema = TJS.generateSchema(program, "Props", settings)
+    return schema ? (schema as Record<string, any>) : null
+  } catch (error) {
+    console.error(`   Failed to generate schema: ${error}`)
+    return null
+  }
+}
+
 function parseBooleanTag(value: string | undefined): boolean | undefined {
   if (!value) return undefined
   const normalized = value.trim().toLowerCase()
@@ -109,25 +129,15 @@ export async function generateSchemaForPlugin(
     return false
   }
 
-  const settings: TJS.PartialArgs = {
-    required: true,
-    noExtraProps: true,
-  }
-
-  const compilerOptions: TJS.CompilerOptions = {
-    strictNullChecks: true,
-  }
-
   try {
-    const program = TJS.getProgramFromFiles([propsFile], compilerOptions)
-    const schema = TJS.generateSchema(program, "Props", settings)
+    const schema = generateRawSchemaFromPropsFile(propsFile)
 
     if (!schema) {
       return false
     }
 
     const loaderFields = extractLoaderFieldsFromProps(propsFile)
-    applyLoaderFieldsToSchema(schema as Record<string, any>, loaderFields)
+    applyLoaderFieldsToSchema(schema, loaderFields)
 
     const schemaPath = path.join(pluginPath, "schema.json")
     fs.writeFileSync(schemaPath, JSON.stringify(schema, null, 2))
@@ -136,6 +146,50 @@ export async function generateSchemaForPlugin(
     console.error(`   Failed to generate schema: ${error}`)
     return false
   }
+}
+
+export async function generateSchemasForTheme(
+  themeName: string,
+  themesDir: string
+): Promise<boolean> {
+  const themePath = path.join(themesDir, themeName)
+  const propsFile = path.join(themePath, "props.ts")
+  const cleanSchemePath = path.join(themePath, "clean-scheme.json")
+
+  if (!fs.existsSync(propsFile)) {
+    return false
+  }
+
+  const rawSchema = generateRawSchemaFromPropsFile(propsFile)
+
+  if (!rawSchema) {
+    return false
+  }
+
+  const normalizedScheme = JSON.parse(JSON.stringify(rawSchema))
+
+  fs.writeFileSync(path.join(themePath, "scheme.json"), JSON.stringify(normalizedScheme, null, 2))
+
+  // The clean scheme is the theme's default store configuration. It is authored
+  // independently from Props and must never be overwritten by schema generation.
+  if (!fs.existsSync(cleanSchemePath)) {
+    console.error(`   Missing theme clean scheme: ${cleanSchemePath}`)
+    return false
+  }
+
+  try {
+    const cleanScheme = JSON.parse(fs.readFileSync(cleanSchemePath, "utf-8"))
+
+    if (!cleanScheme || typeof cleanScheme !== "object" || Array.isArray(cleanScheme)) {
+      console.error("   Theme clean scheme must be a JSON object")
+      return false
+    }
+  } catch (error) {
+    console.error(`   Invalid theme clean scheme: ${error}`)
+    return false
+  }
+
+  return true
 }
 
 export async function generateSchemas(pluginName?: string): Promise<void> {

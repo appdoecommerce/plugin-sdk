@@ -38,12 +38,13 @@ export async function uploadSchemeToBackend(pluginName: string): Promise<void> {
   }
 
   const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"))
+  const config = mergeManifestRuntimeMetadata(schema, manifest)
 
   console.log(`🌐 Uploading scheme to backend...`)
   console.log(`   Service ID: ${manifest.serviceId}`)
 
   try {
-    await updateScheme(manifest.serviceId, schema)
+    await updateScheme(manifest.serviceId, config)
 
     console.log(`✅ Schema uploaded successfully!`)
     console.log(`   Plugin: ${pluginName}`)
@@ -53,4 +54,21 @@ export async function uploadSchemeToBackend(pluginName: string): Promise<void> {
     console.error(`\n❌ Error uploading scheme: ${error.message}`)
     process.exit(1)
   }
+}
+
+function mergeManifestRuntimeMetadata(
+  schema: Record<string, any>,
+  manifest: Record<string, any>
+): Record<string, any> {
+  const config = { ...schema }
+
+  if (
+    manifest.platformPlacements &&
+    typeof manifest.platformPlacements === "object" &&
+    !Array.isArray(manifest.platformPlacements)
+  ) {
+    config.platformPlacements = manifest.platformPlacements
+  }
+
+  return config
 }

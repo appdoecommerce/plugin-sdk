@@ -5,6 +5,7 @@ import FormData from "form-data"
 import fetch from "node-fetch"
 
 const APP_BASE = "http://localhost:3333/api/plugins"
+const THEMES_BASE = "http://localhost:3333/api/themes"
 const PLUGIN_SERVER_URL = process.env.PLUGIN_SERVER_URL || "http://localhost:4000"
 
 // ============================================
@@ -31,6 +32,23 @@ interface CreateAppPayload {
   type: string
   config: object
   version: string
+}
+
+interface CreateThemeResponse {
+  theme: {
+    id: number
+    createdByUserId: number
+    name: string
+    type: string
+    latestVersion: string | null
+    createdAt: string
+    updatedAt: string | null
+  }
+}
+
+interface CreateThemePayload {
+  name: string
+  type: string
 }
 
 interface DeployPluginResponse {
@@ -219,5 +237,55 @@ export async function deployPlugin(options: DeployPluginOptions): Promise<Deploy
   }
 
   return result
+}
+
+export async function createTheme(payload: CreateThemePayload): Promise<CreateThemeResponse> {
+  const cwd = process.cwd()
+  const { storeId, token } = loadEnv(cwd)
+
+  const response = await fetch(`${THEMES_BASE}/new`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Store-ID": storeId,
+      "X-Integration-Token": token,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = (await response.json().catch(() => ({}))) as any
+    throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
+  }
+
+  return response.json() as Promise<CreateThemeResponse>
+}
+
+export async function updateThemeSchemeVersion(
+  themeId: number,
+  version: string,
+  payload: { manifest: object; scheme: object; cleanScheme: object }
+): Promise<{ themeVersion: { id: number; themeId: number; version: string; updatedAt: string | null } }> {
+  const cwd = process.cwd()
+  const { storeId, token } = loadEnv(cwd)
+
+  const response = await fetch(`${THEMES_BASE}/scheme/${themeId}/${version}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Store-ID": storeId,
+      "X-Integration-Token": token,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = (await response.json().catch(() => ({}))) as any
+    throw new Error(error.error || `API Error: ${response.status} ${response.statusText}`)
+  }
+
+  return response.json() as Promise<{
+    themeVersion: { id: number; themeId: number; version: string; updatedAt: string | null }
+  }>
 }
 

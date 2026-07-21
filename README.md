@@ -81,7 +81,60 @@ appecom plugin:build
 | `appecom scheme:generate <plugin>` | Gera schema.json do props.ts |
 | `appecom scheme:download <plugin>` | Baixa schema do sistema |
 | `appecom scheme:upload <plugin>` | Envia schema para sistema |
+| `appecom theme:create <name>` | Cria a estrutura inicial de um tema |
+| `appecom theme:build <theme>` | Gera os artefatos versionados de um tema |
+| `appecom theme:publish <theme>` | Publica uma versão do tema no dashboard |
 | `appecom watch` | Auto-rebuild ao detectar mudanças |
+
+---
+
+### Temas
+
+Temas são artefatos versionados e independentes dos plugins. Eles definem a configuração
+estrutural e visual de uma loja, sem runtime ou `plugin-server`.
+
+```bash
+# Criar a estrutura base
+appecom theme:create tema-flex --name "Tema Flex"
+
+# Editar themes/tema-flex/props.ts e themes/tema-flex/clean-scheme.json
+
+# Gerar os artefatos locais
+appecom theme:build tema-flex
+
+# Publicar a versão definida em themes/tema-flex/manifest.json
+appecom theme:publish tema-flex
+```
+
+#### `appecom theme:create <nome>`
+
+Cria `themes/<nome>/` com os arquivos iniciais:
+
+- `props.ts`: fonte de verdade do schema do editor, gerado com `typescript-json-schema`.
+- `clean-scheme.json`: configuração padrão limpa do tema, enviada para a API da loja.
+- `manifest.json`: nome, tipo e versão do tema.
+- `scheme.json`: schema do painel gerado automaticamente no build.
+
+Use `--name "Nome do tema"` para definir o nome de exibição.
+
+#### `appecom theme:build <nome>`
+
+Gera `dist/themes/<nome>/` com `manifest.json`, `scheme.json`, `clean-scheme.json` e uma cópia
+de `props.ts`.
+
+- `scheme.json` é gerado a partir de `props.ts` e controla os campos exibidos no editor.
+- `clean-scheme.json` não é gerado a partir do TypeScript nem sobrescrito pelo build. Ele é o
+  JSON de configuração default do tema e deve ser mantido pelo desenvolvedor.
+- O `clean-scheme.json` precisa conter `settings`, `globals` e `pages` na raiz.
+- Não inclua `store`: a API vai compor os dados da loja a partir da integração ativa.
+
+#### `appecom theme:publish <nome>`
+
+Executa o build, cria ou resolve o tema pelo `type` e faz upsert da versão no dashboard. O envio
+usa as credenciais da integração configuradas no `.env` (`APPECOM_STOREID` e `APPECOM_SECRET`).
+
+Ao reenviar a mesma versão, o `manifest`, `scheme` e `cleanScheme` daquela versão são atualizados.
+Para publicar uma nova versão, atualize `version` em `themes/<nome>/manifest.json` antes do comando.
 
 ---
 

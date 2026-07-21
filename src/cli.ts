@@ -5,12 +5,15 @@ import { makePlugin } from "./commands/make-plugin.js"
 import { deletePlugin } from "./commands/plugin-delete.js"
 import { prepareEnvironment } from "./commands/prepare.js"
 import { buildPlugin } from "./commands/build-plugin.js"
+import { buildTheme } from "./commands/build-theme.js"
 import { watchPlugins } from "./commands/watch.js"
 import { previewPlugin } from "./commands/preview.js"
 import { generateScheme } from "./commands/scheme-generate.js"
 import { getSchemeFromBackend } from "./commands/scheme-get.js"
 import { uploadSchemeToBackend } from "./commands/scheme-upload.js"
 import { deployPlugin } from "./commands/deploy-plugin.js"
+import { createTheme } from "./commands/create-theme.js"
+import { publishTheme } from "./commands/publish-theme.js"
 import { createRequire } from "module"
 
 const require = createRequire(import.meta.url)
@@ -62,6 +65,24 @@ program
   .action((pluginName, options) => {
     deployPlugin(pluginName, { force: options.force })
   })
+
+program
+  .command("theme:create <name>")
+  .description("Create a new theme with boilerplate files")
+  .option("-n, --name <displayName>", "Custom display name for the theme")
+  .action((themeName, options) => {
+    createTheme(themeName, options.name)
+  })
+
+program
+  .command("theme:build <theme-name>")
+  .description("Build a theme package with manifest and schemes")
+  .action(buildTheme)
+
+program
+  .command("theme:publish <theme-name>")
+  .description("Publish a theme version directly to the dashboard")
+  .action(publishTheme)
 
 // Schema commands
 program
