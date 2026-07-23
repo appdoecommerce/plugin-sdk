@@ -4,9 +4,25 @@ import fs from "fs"
 import FormData from "form-data"
 import fetch from "node-fetch"
 
-const APP_BASE = "http://localhost:3333/api/plugins"
-const THEMES_BASE = "http://localhost:3333/api/themes"
-const PLUGIN_SERVER_URL = process.env.PLUGIN_SERVER_URL || "http://localhost:4000"
+function normalizeBaseUrl(value: string): string {
+  return value.endsWith("/") ? value : `${value}/`
+}
+
+function resolveDashboardUrl(): string {
+  const envNode = process.env.NODE_ENV
+  const isDev = envNode !== "production"
+  const configured = process.env.APPECOM_APP_URL?.trim()
+  const fallback = isDev ? "http://localhost:3333/" : "https://v2.appdoecommerce.com.br/"
+  return normalizeBaseUrl(configured || fallback)
+}
+
+function resolvePluginServerUrl(): string {
+  const envNode = process.env.NODE_ENV
+  const isDev = envNode !== "production"
+  const configured = process.env.APPECOM_PLUGIN_SERVER_URL?.trim()
+  const fallback = isDev ? "http://localhost:4000/" : "https://v2-plugins.appdoecommerce.com.br/"
+  return normalizeBaseUrl(configured || fallback)
+}
 
 // ============================================
 // Types
@@ -102,14 +118,28 @@ export function loadEnv(cwd: string): { storeId: string; token: string } {
   return { storeId, token }
 }
 
+function resolveApiEndpoints(cwd: string) {
+  loadEnv(cwd)
+
+  const appHost = resolveDashboardUrl()
+  const pluginHost = resolvePluginServerUrl()
+
+  return {
+    appBase: new URL("api/plugins", appHost).toString(),
+    themesBase: new URL("api/themes", appHost).toString(),
+    pluginServerUrl: pluginHost,
+  }
+}
+
 /**
  * Create app in backend API
  */
 export async function createApp(payload: CreateAppPayload): Promise<CreateAppResponse> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { appBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(APP_BASE+"/new", {
+  const response = await fetch(`${appBase}/new`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -133,8 +163,9 @@ export async function createApp(payload: CreateAppPayload): Promise<CreateAppRes
 export async function deleteApp(serviceId: string): Promise<{ message: string }> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { appBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(`${APP_BASE}/delete/${serviceId}`, {
+  const response = await fetch(`${appBase}/delete/${serviceId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -157,8 +188,9 @@ export async function deleteApp(serviceId: string): Promise<{ message: string }>
 export async function getScheme(serviceId: string): Promise<{ scheme: string }> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { appBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(`${APP_BASE}/scheme/${serviceId}`, {
+  const response = await fetch(`${appBase}/scheme/${serviceId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -181,8 +213,9 @@ export async function getScheme(serviceId: string): Promise<{ scheme: string }> 
 export async function updateScheme(serviceId: string, config: object): Promise<CreateAppResponse> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { appBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(`${APP_BASE}/scheme/${serviceId}`, {
+  const response = await fetch(`${appBase}/scheme/${serviceId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -206,6 +239,7 @@ export async function updateScheme(serviceId: string, config: object): Promise<C
 export async function deployPlugin(options: DeployPluginOptions): Promise<DeployPluginResponse> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { pluginServerUrl } = resolveApiEndpoints(cwd)
 
   const form = new FormData()
   
@@ -215,7 +249,7 @@ export async function deployPlugin(options: DeployPluginOptions): Promise<Deploy
   form.append("manifest", JSON.stringify(options.manifest))
   form.append("force", String(options.force || false))
 
-  const response = await fetch(`${PLUGIN_SERVER_URL}/api/plugins/deploy`, {
+  const response = await fetch(new URL("api/plugins/deploy", pluginServerUrl).toString(), {
     method: "POST",
     body: form,
     headers: {
@@ -242,8 +276,9 @@ export async function deployPlugin(options: DeployPluginOptions): Promise<Deploy
 export async function createTheme(payload: CreateThemePayload): Promise<CreateThemeResponse> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { themesBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(`${THEMES_BASE}/new`, {
+  const response = await fetch(`${themesBase}/new`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -268,8 +303,9 @@ export async function updateThemeSchemeVersion(
 ): Promise<{ themeVersion: { id: number; themeId: number; version: string; updatedAt: string | null } }> {
   const cwd = process.cwd()
   const { storeId, token } = loadEnv(cwd)
+  const { themesBase } = resolveApiEndpoints(cwd)
 
-  const response = await fetch(`${THEMES_BASE}/scheme/${themeId}/${version}`, {
+  const response = await fetch(`${themesBase}/scheme/${themeId}/${version}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
